@@ -1,0 +1,10 @@
+COMMANDS:
+	- pwd (might need regular expression to display accurate message of where we are)
+	- cd  (check chdir() system call)
+	- ls  (partially done, need to split files from folders)
+	- less(use less command (with exec) but if no files display a message)
+
+THINK ABOUT HOW THE ARCHITECTURE WORKS:
+
+	One shell program shell.c :
+A infinite loop where we get user inputs and create child processes to handle the commands (execlp() system call or custom function (ex: cd command or the ones with custom messages)
