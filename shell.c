@@ -5,37 +5,46 @@
 #include <string.h>
 #include <sys/wait.h>
 
+#define BUFF_SIZE 512
 
 int main()
 {
-	char* input;
+	//char* input;
 	char pwd[256];
 	pid_t child_pid;
+	char buf[BUFF_SIZE] = {0};
+	char r;
 
-	while(1)
+
+
+	char* path = getcwd(pwd, 256);
+	ssize_t w = write(STDOUT_FILENO, path, strlen(path));
+
+	while((r = read(0, buf, BUFF_SIZE) > 0))
 	{
-		char* path = getcwd(pwd, 256);
-		input = readline(path);
-		
+		w = write(STDOUT_FILENO, buf, r);
+
+		/*
 		if (strcmp(input, "quit") == 0)
 			break;
 
 		child_pid = fork();
 		if (child_pid == 0)
 		{
-			/*
+			
 			execvp();
 			or 
 			call to some function
-			*/
+			
 		}
 		else
 		{
-			waitpid(NULL);
+			wait(NULL);
 		}
+		*/
 	}
 
-	free(input);
+	//free(input);
 
 	return 0;
 
