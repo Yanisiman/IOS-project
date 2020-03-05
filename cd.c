@@ -18,6 +18,7 @@ int tellDescription(){
 		int desc = read(filedesc, message, BUFFERSIZE);
 		message[desc] = '\0'; 
 		write(1, message, desc );
+		close(filedesc);
 	}
 	return 0;
 }
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
 	//going to root with no args
 	if(argc < 2){
 		chdir(getenv("HOME"));
-		printf("%s\n", "this works"); 
+		tellDescription();
 		printf("%s\n", getcwd(s, BUFFERSIZE));
 		return 0;	
 	}
