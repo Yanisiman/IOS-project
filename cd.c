@@ -1,10 +1,9 @@
-#include <stdio.h> 
-#include <sys/stat.h>
-#include <string.h>
-#include <dirent.h>
-#include <fcntl.h> 
-#include <unistd.h>
+#include <stdio.h> //printf
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <fcntl.h> 
+
 #define BUFFERSIZE 512
 
 
@@ -24,19 +23,27 @@ int tellDescription(){
 }
 int main(int argc, char *argv[]) 
 {    
-
+	
 	char s[BUFFERSIZE]; 
 	
     printf("%s\n", getcwd(s, BUFFERSIZE));     // printing current working directory 
-  
-    int a ;
-
+    int a; // for indicating if cd command was success
 	char path[BUFFERSIZE];
 	path[0]='\0';
+	
+	//going to root with no args
+	if(argc < 2){
+		chdir(getenv("HOME"));
+		printf("%s\n", "this works"); 
+		printf("%s\n", getcwd(s, BUFFERSIZE));
+		return 0;	
+	}
+	
     strcat(path, argv[1]);
-
     char cwd[BUFFERSIZE];
+	
     if(path[0] != '/'){
+		
 		// true for the dir in cwd
         getcwd(cwd,sizeof(cwd));
         strcat(cwd,"/");
@@ -48,8 +55,9 @@ int main(int argc, char *argv[])
 		if(a < 0){
 			printf("%s\n", "an error occured performing cd"); 
 		}
-	}else{
 		
+	}else{
+	
 		a = chdir(path);
 		tellDescription();
 		
