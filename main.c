@@ -7,10 +7,7 @@
 #include "commands/pwd.h"
 #include "commands/ls.h"
 #include "commands/cd.h"
-
-/*
 #include "commands/less.h"
-*/
 
 #define BUFF_SIZE 512
 
@@ -62,13 +59,18 @@ int main()
 		for (; buf[i] != '\0'; i++)
 			continue;
 		buf[i-1] = ' ';	
-		parse_command = parse_input(buf);		
+		parse_command = parse_input(buf);
+		
+		int argc = 0;
+		for (; parse_command[argc]; argc++)
+			continue;
+
 		if (strcmp(parse_command[0], "quit") == 0)
 			break;
 		if (strcmp(parse_command[0], "cd") == 0)
 		{
 			// cd command
-			if (cd(2,parse_command) == -1)
+			if (cd(argc, parse_command) == -1)
 				errx(EXIT_FAILURE, "Error with cd command");
 		}
 		if (strcmp(parse_command[0], "ls") == 0)
@@ -79,6 +81,10 @@ int main()
 		if (strcmp(parse_command[0], "pwd") == 0)
 		{
 			pwd(arr,256);
+		}
+		if (strcmp(parse_command[0], "less") == 0)
+		{
+			less(argc, parse_command);
 		}
 
 		free(parse_command);
