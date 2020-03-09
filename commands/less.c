@@ -9,18 +9,24 @@
 
 int less(int argc, char *argv[])
 {
-	if (argc <= 2)
-		printf("Pick a different item to less");
+	if (argc < 2)
+	{
+		write(STDOUT_FILENO, "Pick a different item to less\n", 30);
+		return -1;
+	}
 
 	int filedesc = open(argv[1], O_RDONLY);
 	if(filedesc < 0)
+	{
 		printf("There is no %s here", argv[1]);
+		return -1;
+	}
 	else
 	{
-		char message[BUFFERSIZE];
+		char message[BUFFERSIZE] = { 0 };
 		int desc = read(filedesc, message, BUFFERSIZE);
-		message[desc] = '\0'; 
-		write(1, message, desc );
+		message[desc] = '\n'; 
+		write(STDOUT_FILENO, message, desc);
 		close(filedesc);
 	}
 

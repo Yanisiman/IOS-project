@@ -8,7 +8,8 @@
 #define BUFFERSIZE 512
 
 
-int tellDescription(){
+int tellDescription()
+{
 	int filedesc = open("description.txt", O_RDONLY);
 	if(filedesc < 0)
 	{
@@ -16,44 +17,40 @@ int tellDescription(){
 	}
 	else
 	{
-		char message[BUFFERSIZE];
+		char message[BUFFERSIZE] = { 0 };
 		int desc = read(filedesc, message, BUFFERSIZE);
-		message[desc] = '\0'; 
-		write(1, message, desc );
+		message[desc] = '\n'; 
+		write(STDOUT_FILENO, message, desc);
 		close(filedesc);
 	}
-
 	return 0;
 }
 int cd(int argc, char *argv[]) 
 {    
 
-	char s[BUFFERSIZE]; 
-
-	// printf("%s\n", getcwd(s, BUFFERSIZE));     // printing current working directory 
-
-	// for indicating if cd command was success
+	char s[BUFFERSIZE] = { 0 }; 
 	int a;
 
-	char path[BUFFERSIZE];
-	path[0] = '\0';
+	// printf("%s\n", getcwd(s, BUFFERSIZE));     
 
 	//going to root with no args
 	if(argc < 2){
 		chdir(getenv("HOME"));
 		tellDescription();
-		printf("%s\n", getcwd(s, BUFFERSIZE));
+		printf("\n%s\n", getcwd(s, BUFFERSIZE));
 		return 1;	
 	}
 
-	strcat(path, argv[1]);
-
-	a = chdir(path);
-	tellDescription();
+	a = chdir(argv[1]);
 
 	if(a < 0)
-		errx(EXIT_FAILURE, "Error occured doing cd command");
-	printf("%s\n", getcwd(s, BUFFERSIZE)); 
+	{
+		write(STDOUT_FILENO, "Error occured doing cd command\n", 31);
+		return -1;
+	}
+
+	tellDescription();
+	printf("\n%s\n", getcwd(s, BUFFERSIZE)); 
 
 	return 0;
 } 
