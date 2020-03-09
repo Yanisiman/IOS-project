@@ -31,7 +31,7 @@ int cd(int argc, char *argv[])
 	char s[BUFFERSIZE]; 
 
 	// printf("%s\n", getcwd(s, BUFFERSIZE));     // printing current working directory 
-	
+
 	// for indicating if cd command was success
 	int a;
 
@@ -47,30 +47,12 @@ int cd(int argc, char *argv[])
 	}
 
 	strcat(path, argv[1]);
-	char cwd[BUFFERSIZE];
 
-	if(path[0] != '/'){
+	a = chdir(path);
+	tellDescription();
 
-		// true for the dir in cwd
-		getcwd(cwd,sizeof(cwd));
-		strcat(cwd,"/");
-		strcat(cwd,path);
-
-		a = chdir(cwd);
-		tellDescription();
-
-		if(a < 0)
-			errx(EXIT_FAILURE, "Error occured doing cd command");
-	}
-	else
-	{
-
-		a = chdir(path);
-		tellDescription();
-
-		if(a < 0)
-			errx(EXIT_FAILURE, "Error occured doing cd command");
-	}
+	if(a < 0)
+		errx(EXIT_FAILURE, "Error occured doing cd command");
 	printf("%s\n", getcwd(s, BUFFERSIZE)); 
 
 	return 0;
