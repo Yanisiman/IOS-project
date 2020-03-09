@@ -37,14 +37,14 @@ char** parse_input(char *buf)
 int main()
 {
 	char arr[256];
-	char buf[BUFF_SIZE] = { 0 };
 	char **parse_command;
-
 
 	char shell[2] = {'$', ' '};
 
 	ssize_t w;
 	ssize_t r = 1;
+
+	int status;
 
 	while(r != 0)
 	{
@@ -52,6 +52,7 @@ int main()
 		if (w == -1)
 			errx(EXIT_FAILURE, "Error while writing");
 
+		char buf[BUFF_SIZE] = { 0 };
 		r = read(STDIN_FILENO, buf, BUFF_SIZE);
 		if (r == -1)
 			errx(EXIT_FAILURE, "Error while reading");
@@ -66,6 +67,13 @@ int main()
 		for (; parse_command[argc]; argc++)
 			continue;
 
+		if (strcmp(parse_command[0], "cd") == 0)
+			{
+				if (cd(argc, parse_command) == -1)
+					errx(EXIT_FAILURE, "Error with cd command");
+				continue;
+			}
+		
 		pid_t process = fork();
 
 		if (process == -1)
@@ -73,18 +81,14 @@ int main()
 
 		if (process == 0)
 		{
-
+			//printf("%d\n", getpid());
+			
 			if (strcmp(parse_command[0], "quit") == 0)
-				break;
-			if (strcmp(parse_command[0], "cd") == 0)
-			{
-				// cd command
-				if (cd(argc, parse_command) == -1)
-					errx(EXIT_FAILURE, "Error with cd command");
-			}
+				_exit(EXIT_FAILURE);
+
+			
 			if (strcmp(parse_command[0], "ls") == 0)
 			{
-				// ls command
 				simple_ls();
 			}
 			if (strcmp(parse_command[0], "pwd") == 0)
@@ -96,12 +100,25 @@ int main()
 				less(argc, parse_command);
 			}
 
+			if (strcmp(parse_command[0], "clear") == 0)
+			{
+				write(STDOUT_FILENO, "\e[1;1H\e[2J", 12);
+			}
+
 			free(parse_command);
+
+			_exit(0);
 		}
 
 		else 
 		{
-			wait(NULL);
+			//printf("%d\n", getpid());
+			wait(&status);
+			if (WIFEXITED(status))
+			{
+				if (WEXITSTATUS(status) == EXIT_FAILURE)
+					return 1;
+			}
 		}
 	}
 
