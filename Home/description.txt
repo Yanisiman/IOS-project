@@ -5,6 +5,3 @@ You can backtrack with the command: cd ..
 Interact with things in world with: less [item] (look at, examine, or speak to
 something)
 Go ahead. Explore. We hope you enjoy what you find.
-Items:
-Letter- which gives the above instructions again when you use the less command (ie less
-Letter)
