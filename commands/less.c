@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     int filedesc = open(argv[1], O_RDONLY);
     if(filedesc < 0){
-		printf("%s\n", "an error occured reading file"); 
+		printf("%s\n", "Pick another item to select."); 
 	}else{
 		
 		char message[BUFFERSIZE];
