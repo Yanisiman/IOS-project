@@ -4,6 +4,7 @@
 #include <err.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 #include "commands/pwd.h"
 #include "commands/ls.h"
 #include "commands/cd.h"
@@ -39,7 +40,7 @@ int main()
 	char buf[BUFF_SIZE] = { 0 };
 	char **parse_command;
 
-	
+
 	char shell[2] = {'$', ' '};
 
 	ssize_t w;
@@ -60,34 +61,48 @@ int main()
 			continue;
 		buf[i-1] = ' ';	
 		parse_command = parse_input(buf);
-		
+
 		int argc = 0;
 		for (; parse_command[argc]; argc++)
 			continue;
 
-		if (strcmp(parse_command[0], "quit") == 0)
-			break;
-		if (strcmp(parse_command[0], "cd") == 0)
+		pid_t process = fork();
+
+		if (process == -1)
+			return -1;
+
+		if (process == 0)
 		{
-			// cd command
-			if (cd(argc, parse_command) == -1)
-				errx(EXIT_FAILURE, "Error with cd command");
-		}
-		if (strcmp(parse_command[0], "ls") == 0)
-	 	{
-			// ls command
-			simple_ls();
-		}
-		if (strcmp(parse_command[0], "pwd") == 0)
-		{
-			pwd(arr,256);
-		}
-		if (strcmp(parse_command[0], "less") == 0)
-		{
-			less(argc, parse_command);
+
+			if (strcmp(parse_command[0], "quit") == 0)
+				break;
+			if (strcmp(parse_command[0], "cd") == 0)
+			{
+				// cd command
+				if (cd(argc, parse_command) == -1)
+					errx(EXIT_FAILURE, "Error with cd command");
+			}
+			if (strcmp(parse_command[0], "ls") == 0)
+			{
+				// ls command
+				simple_ls();
+			}
+			if (strcmp(parse_command[0], "pwd") == 0)
+			{
+				pwd(arr,256);
+			}
+			if (strcmp(parse_command[0], "less") == 0)
+			{
+				less(argc, parse_command);
+			}
+
+			free(parse_command);
 		}
 
-		free(parse_command);
+		else 
+		{
+			wait(NULL);
+		}
 	}
 
 	free(parse_command);
