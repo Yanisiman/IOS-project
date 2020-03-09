@@ -1,1 +1,10 @@
-this is Home directory description
+Welcome! If you are new to the game, here are some tips:
+Look at your surrounds with the command: ls (look at surroundings)
+Move to a new location with: cd [location] (choose destination)
+You can backtrack with the command: cd ..
+Interact with things in world with: less [item] (look at, examine, or speak to
+something)
+Go ahead. Explore. We hope you enjoy what you find.
+Items:
+Letter- which gives the above instructions again when you use the less command (ie less
+Letter)
