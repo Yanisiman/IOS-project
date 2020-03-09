@@ -4,6 +4,13 @@
 #include <err.h>
 #include <string.h>
 #include <sys/wait.h>
+#include "commands/pwd.h"
+#include "commands/ls.h"
+#include "commands/cd.h"
+
+/*
+#include "commands/less.h"
+*/
 
 #define BUFF_SIZE 512
 
@@ -31,8 +38,8 @@ char** parse_input(char *buf)
 
 int main()
 {
-	char pwd[256];
-	char buf[BUFF_SIZE];
+	char arr[256];
+	char buf[BUFF_SIZE] = { 0 };
 	char **parse_command;
 
 	
@@ -51,8 +58,8 @@ int main()
 		if (r == -1)
 			errx(EXIT_FAILURE, "Error while reading");
 
-		int i;
-		for (i = 0; buf[i] != '\0'; i++)
+		int i = 0;
+		for (; buf[i] != '\0'; i++)
 			continue;
 		buf[i-1] = ' ';	
 		parse_command = parse_input(buf);		
@@ -61,25 +68,17 @@ int main()
 		if (strcmp(parse_command[0], "cd") == 0)
 		{
 			// cd command
+			if (cd(2,parse_command) == -1)
+				errx(EXIT_FAILURE, "Error with cd command");
 		}
 		if (strcmp(parse_command[0], "ls") == 0)
-		{
+	 	{
 			// ls command
+			simple_ls();
 		}
 		if (strcmp(parse_command[0], "pwd") == 0)
 		{
-			// pwd command
-			char* path = getcwd(pwd, 256);
-			size_t len = strlen(path);
-			if (len <= 256)
-			{
-				path[len] = '\n';
-				path[len+1] = '\0';
-			}
-
-			w = write(STDOUT_FILENO, path, len+1);
-			if (w == -1)
-				errx(EXIT_FAILURE, "Error while writing pwd command");
+			pwd(arr,256);
 		}
 
 		free(parse_command);

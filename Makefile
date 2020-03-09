@@ -1,8 +1,8 @@
 CPPFLAGS = -MMD
 CC = gcc
-CFLAGS = -g -Wall -Wextra -Werror -std=c99 -O1
+CFLAGS = -Wall -Wextra -Werror -g
 
-SRC = main.c 
+SRC = main.c commands/pwd.c commands/ls.c commands/cd.c
 #commands/ls.c commands/pwd.c commands/cd.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
