@@ -68,12 +68,12 @@ int main()
 			continue;
 
 		if (strcmp(parse_command[0], "cd") == 0)
-			{
-				if (cd(argc, parse_command) == -1)
-					errx(EXIT_FAILURE, "Error with cd command");
-				continue;
-			}
-		
+		{
+			if (cd(argc, parse_command) == -1)
+				errx(EXIT_FAILURE, "Error with cd command");
+			continue;
+		}
+
 		pid_t process = fork();
 
 		if (process == -1)
@@ -82,27 +82,32 @@ int main()
 		if (process == 0)
 		{
 			//printf("%d\n", getpid());
-			
-			if (strcmp(parse_command[0], "quit") == 0)
+
+			if (strcmp(parse_command[0], "quit") == 0
+					|| strcmp(parse_command[0], "exit") == 0)
 				_exit(EXIT_FAILURE);
 
-			
-			if (strcmp(parse_command[0], "ls") == 0)
+
+			else if (strcmp(parse_command[0], "ls") == 0)
 			{
 				simple_ls();
 			}
-			if (strcmp(parse_command[0], "pwd") == 0)
+			else if (strcmp(parse_command[0], "pwd") == 0)
 			{
 				pwd(arr,256);
 			}
-			if (strcmp(parse_command[0], "less") == 0)
+			else if (strcmp(parse_command[0], "less") == 0)
 			{
 				less(argc, parse_command);
 			}
 
-			if (strcmp(parse_command[0], "clear") == 0)
+			else if (strcmp(parse_command[0], "clear") == 0)
 			{
 				write(STDOUT_FILENO, "\e[1;1H\e[2J", 12);
+			}
+			else
+			{
+				execvp(parse_command[0], parse_command);
 			}
 
 			free(parse_command);
