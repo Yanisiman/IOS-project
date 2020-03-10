@@ -54,8 +54,14 @@ void listdir(char *pwd, int indent, int recursive, int info)
 		}
 		else
 		{
-			files[f]=*entry;
-			f++;
+
+      
+			if (entry->d_name[0]!= '.' && strcmp(entry->d_name, "description.txt") !=0)
+			{
+			    files[f]=*entry;
+			    f++;;
+			}
+
 		}
 
 	}  
