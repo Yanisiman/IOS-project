@@ -27,15 +27,11 @@ int tellDescription()
 }
 int cd(int argc, char *argv[]) 
 {    
-///sddqsjkdhqsjdk
 	char s[BUFFERSIZE] = { 0 }; 
 	int a;
 
 	// printf("%s\n", getcwd(s, BUFFERSIZE));     
 
-//jshdkdhqsjkdhqskjdhqshdkjqhdqhdqlkjdksqj
-//ssqhjkdhqskjdhqskjhdqs
-//sqhjdkjqdjkqsh
 	if(argc < 2){
 		chdir(getenv("HOME"));
 		tellDescription();
