@@ -33,7 +33,7 @@ int cd(int argc, char *argv[])
 
 	// printf("%s\n", getcwd(s, BUFFERSIZE));     
 
-//gggg
+//gghhsHHHHHHHHgg  
 	if(argc < 2){
 		chdir(getenv("HOME"));
 		tellDescription();
