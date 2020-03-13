@@ -9,6 +9,8 @@
 #include "commands/ls.h"
 #include "commands/cd.h"
 #include "commands/less.h"
+#include "commands/help.h"
+
 
 #define BUFF_SIZE 512
 
@@ -103,6 +105,11 @@ int main()
 			if (strcmp(parse_command[0], "clear") == 0)
 			{
 				write(STDOUT_FILENO, "\e[1;1H\e[2J", 12);
+			}
+
+            if (strcmp(parse_command[0], "help") == 0)
+			{
+				help();
 			}
 
 			free(parse_command);
