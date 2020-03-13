@@ -9,6 +9,8 @@
 #include "commands/ls.h"
 #include "commands/cd.h"
 #include "commands/less.h"
+#include "commands/help.h"
+
 
 #define BUFF_SIZE 512
 
@@ -108,6 +110,11 @@ int main()
 			else
 			{
 				execvp(parse_command[0], parse_command);
+			}
+
+            if (strcmp(parse_command[0], "help") == 0)
+			{
+				help();
 			}
 
 			free(parse_command);
