@@ -1,0 +1,18 @@
+1. Open shop and resident monitor
+2. Batch processing
+3. Multiprogramming
+	- Bigger memory
+	- Interruptions
+4. Stack instructions
+5. Time sharing
+	- Multics : hierarchical file system
+6. Concurrency
+	- One process fork other processes -> with the creation of Unix
+7. Personal computers
+	- No multiprogramming
+	- No multi-user
+	- GUI
+8. Multiprogramming and multi-user back in computers
+9. Networks
+	- Distributed programming
+10. Mobiles phones

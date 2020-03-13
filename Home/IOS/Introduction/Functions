@@ -1,0 +1,8 @@
+Multiple functions for the operating systems:
+	- Program execution
+	- Hardware abstraction
+	- File system management
+	- Control of multiprogramming and concurrency
+	- Error control
+	- Memory management
+	- System access control and security

@@ -1,0 +1,5 @@
+An Operating System (OS) is an interface between a computer user and computer hardware. An operating system is a software which performs all the basic tasks like file management, memory management, process management, handling input and output, and controlling peripheral devices such as disk drives and printers.
+
+It's actually the bridge between the software (logical part) and the the hardware (physical part) to make it easier to user the different physical components.
+The Operating system is a resource manager based on virtualizations (CPU, memory) and which aims to protect the content of the users through isolation and security.
+
