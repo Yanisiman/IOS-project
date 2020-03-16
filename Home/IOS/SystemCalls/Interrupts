@@ -1,0 +1,5 @@
+Software interrupts (are synchronous, we know when they will happen) are mostly the same as hardware interrupts (are asynchronous, we don't know when they will happen), but the intrrupt is being triggered by another source (either hardware or software). Mostly because something unexpected happened to the code (example : division by 0).
+
+
+A system call is a software interrupt. The difference is that software interrupts are errors (may happen, but not sure) whereas system calls are specific requests in a particular moment.
+

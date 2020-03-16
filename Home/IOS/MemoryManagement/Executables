@@ -1,0 +1,10 @@
+There are four stages for a C program to become an executable:
+1. Pre-processing : This is the very first satge through which a source code passes. In this stage the following tasks are done :
+    - Macro substitution
+    - Comments are stripped off
+    - Expansion of the included files.
+2. Compilation : Translate code to assembly code.
+3. Assembly : Translate assembly code to machine code.
+4. Linking : Resolve address of external routines and generate executable.
+
+

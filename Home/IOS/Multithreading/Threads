@@ -1,0 +1,2 @@
+Multithreading is a process of executing multiple threads simultaneously.
+A multi-threaded program has more than one point of execution, but they share the same address space and thus can access the same data. It consumes less memory and gives an efficient performance. So that, with multithreading technique we can perform multiple operations at once.

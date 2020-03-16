@@ -3,3 +3,7 @@ An Operating System (OS) is an interface between a computer user and computer ha
 It's actually the bridge between the software (logical part) and the the hardware (physical part) to make it easier to user the different physical components.
 The Operating system is a resource manager based on virtualizations (CPU, memory) and which aims to protect the content of the users through isolation and security.
 
+An operating system has three main purposes:
+- Ensure that the computer is correctly working, managing all the computer's resources, such as CPU, hard drive, memory...
+- Establish a user interface to enable the user to interact with the computer.
+- Provide the facilities to develop or execute programs.

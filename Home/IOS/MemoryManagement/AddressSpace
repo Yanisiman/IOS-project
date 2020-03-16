@@ -1,0 +1,6 @@
+The three goals of the address space are :
+- Transparency
+- Efficiency
+- Protection
+
+Stack is used for static memory allocation and Heap for dynamic memory allocation, both stored in the address space of a program.

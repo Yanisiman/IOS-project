@@ -1,0 +1,10 @@
+An Operating system has 2 modes : the kernel mode and the user mode.
+The code executed in user mode is limited in its actions.
+On the contrary, the kernel mode has no limits and can execute code without restrictions.
+User mode can perform privileged actions thanks to system calls making the link between the user program and the operating system.
+
+The only way a user space application can explictlt initiate a switch to kernel mode during normal operation is by making a system call such as open, read, write, etc.
+Whenever a user application calls these system calls with appropriate parameters, a software interrupt is triggered.
+A user can also do some privileged actions through commands which will switch to kernel mode to execute them.
+
+

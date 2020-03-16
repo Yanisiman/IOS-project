@@ -1,0 +1,3 @@
+A hard link just creates another file with a link to the same underlying inode. When you delete a file it removes one link to the underlying inode. The inode is only deleted (or deletable/over-writable) when all links to the inode have been deleted (or the memory address of the file has been overwritten). A symbolic link is a link to another name in the file system which is an hard link to the file. For instance : the shortcut of a file/program in your desktop is a symbolic link.
+
+

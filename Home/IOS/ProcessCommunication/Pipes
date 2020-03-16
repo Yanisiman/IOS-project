@@ -1,0 +1,15 @@
+Pipes are channels that connect processes for communication.
+Pipes come in two flavors, named and unnamed.
+
+Differences : 
+A named pipe has a specific name which can be given to it by the user. It's accessible through two file descriptors.
+
+An unnamed pipe is only used for communication between a child and its parent process, while a named pipe can be used for communication between two unnamed processes as well.
+
+A named pipe exists in the file system and can be used for communication between some other processes. On the other hand, an unnamed pipe vanishes as soon as it's closed, or one of the process cmpletes execution.
+
+Named pipes can be used across a network and unnamed pipes are always local.
+
+A named pipe can have multiple processes communicating (like multiple clients connected to one server). An unnamed pipe is a one-way pipe that typically transfers data between a parent process and a child process.
+
+

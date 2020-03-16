@@ -1,0 +1,9 @@
+First the permission to access files is divided into three users: 
+- The user / owner
+- The group
+- The others / all
+
+Each type of user on a file has the permission or not to : read / write / execute.
+There are other permissions : t-bit (the owner is the only one who can delete the file), the SUID (executable only by the owner) and the SGID (executable by the group of the file).
+
+
