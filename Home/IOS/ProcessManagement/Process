@@ -1,3 +1,5 @@
+A process is a running program
+
 The main feature provided by an Operating system for the processes is the time-sharing:
 The OS creates the illusion of having many CPUs by virtualizing the CPU : run one process for a while, then stop it, run another one for the same amount of time , stop it and so on. With this the OS can promote the illusion that many virtual CPUs exist when in fact there is only one physical CPU (or a few).
 
@@ -10,7 +12,7 @@ The possible states of a process are :
 - Blocked out of the memory
 - Zombie : Final state where it has exited but has not been cleaned up yet.
 
-The decisions are taken by the OS scheduler.
+The decisions are taken by the OS scheduler according to the policies of the OS.
 
 An operating system must have some APIs to manage processes : 
 - Create : methods to create/start new processes (e.g: double click on a program, call the fork method)

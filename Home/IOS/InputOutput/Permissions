@@ -3,7 +3,18 @@ First the permission to access files is divided into three users:
 - The group
 - The others / all
 
-Each type of user on a file has the permission or not to : read / write / execute.
+Each type of user on a file has the permission or not to : 
+    - read  (4)
+    - write  (2)
+    - execute (1)
+
+-rwxrwxrwx
+drwxr-xr-x (the d stands for directory)
+
+We can use the chmod command to change the permissions on a file :
+chmod 755 file.txt
+(Give all the permissions to the user and permissions to read and execute to the group and the others)
+
 There are other permissions : t-bit (the owner is the only one who can delete the file), the SUID (executable only by the owner) and the SGID (executable by the group of the file).
 
 

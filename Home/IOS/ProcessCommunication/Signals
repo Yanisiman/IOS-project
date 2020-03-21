@@ -1,0 +1,7 @@
+A signal interrupts an executing program and, in this sense, communicates with it. Most signals can be either ignored (blocked) or handled (through designated code), with SIGSTOP (pause) and SIGKILL (terminate immediately) as the two notable exceptions. Symbolic constants such as SIGKILL have integer values, in this case, 9.
+
+Signals can arise in user interaction. For example, a user hits Ctrl+C from the command line to terminate a program started from the command-line; Ctrl+C generates a SIGTERM signal. SIGTERM for terminate, unlike SIGKILL, can be either blocked or handled. One process also can signal another, thereby making signals an IPC mechanism.
+
+The kill function can be used by one process to terminate another process or group of processes.
+
+

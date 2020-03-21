@@ -1,3 +1,49 @@
+A file system is used to :
+    - Store data permanently
+    - Manage permissions
+    - Have a tree organization of folders
+
+Persistent storage with HDD or SSD which is different from the main memory (RAM) which is lost every time we shutdown the computer.
+
+Files and directories are specified by an inode with an low level name (the inode number) and the user readable name (the name gave by the user).
+
+In Linux systems the file system starts with a root directory and a tree hierarchy with subdirectories and absolute pathnames.
+
+Files descriptor are private and unique integer for a process to access files, and do some operations on them like read or write.
+Each process has 3 files descriptor already used and opened : 
+    - Standard input 0
+    - Standard output 1
+    - Standard error 2
+
+
 A hard link just creates another file with a link to the same underlying inode. When you delete a file it removes one link to the underlying inode. The inode is only deleted (or deletable/over-writable) when all links to the inode have been deleted (or the memory address of the file has been overwritten). A symbolic link is a link to another name in the file system which is an hard link to the file. For instance : the shortcut of a file/program in your desktop is a symbolic link.
 
+With the inode of a file we have acces to information like its size, owner, permissions, creation date and links to info blocks.
 
+In a file system :
+
+Open file descriptor table (table with the file descriptors opened)
+->
+Open files table (table with th mode(s) in which the file is opened)
+->
+Inodes table (Table of the different inodes to get access to the file information)
+->
+Inode (Access to the inode number)i
+->
+File
+
+
+Here is a list of system calls that can be used to deal with files:
+    - open()
+    - creat()
+    - read()
+    - write()
+    - close()
+    - lseek()
+    - mkdir()
+    - opendir()
+    - readdir()
+    - closedir()
+    - rmdir()
+    - stat()
+    - dup()

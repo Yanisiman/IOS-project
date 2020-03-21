@@ -1,6 +1,21 @@
-The three goals of the address space are :
-- Transparency
-- Efficiency
-- Protection
+The address space is an abstraction of the memory for a process which contains all of the memory state of the running program. 
+In the address space of a process we can found :
+    - The instructions / code / data (at the top of address space -> it's static)
+    - The heap (after the code, grows downward)
+    - The stack (starts at the end address space grows upward)
 
-Stack is used for static memory allocation and Heap for dynamic memory allocation, both stored in the address space of a program.
+The stack is used for static memory allocation for local variables to keep track of parameters and return values to and from routines and function calls.
+The heap is used for dynamic memory allocation.
+
+If the program is bigger than the main memory, the OS should divid the code in chunks and then load the chunks when it's needed at a given time.
+Two methods :
+    - Pagging : Divide the code in same length chunks of the address space and load them in physical addresses of memory when needed.
+    - Segmenting : Same as pagging but chunks have not the same length.
+
+The three goals of the address space are :
+- Transparency (the OS should implemenent virtual memory in a way that it's invisible to the running program. The process should behave as it has its own memory)
+- Efficiency (in time and space : it should rely on hardware support)
+- Protection (protect processes from one another. This is isolation)
+
+
+

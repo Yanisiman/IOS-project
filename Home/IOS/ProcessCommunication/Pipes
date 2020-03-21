@@ -1,5 +1,34 @@
 Pipes are channels that connect processes for communication.
-Pipes come in two flavors, named and unnamed.
+A channel has a write end for writing ytes and a read end for reading these bytes (FIFO structure).
+In typical use, one process writes to the channel, and a different process reads from this same channel.
+
+Pipes come in two flavors, named and unnamed, and can be used either interactively from the command line or within programs.
+
+In general, channel-based IPC is concurrent-safe thanks to the MT-safe value of the function mq_open.
+
+Unnamed pipes:
+
+On all modern systems, the vertical bar | represents an unnamed pipe at the command line.
+In the vertical-bar syntax from the command line, the process to the left (sleep) is the writer, and the process to the right (echo) is the reader. By default, the reader blocks until there are bytes to read from the channel, and the writer—after writing its bytes—finishes up by sending an end-of-stream marker. (Even if the writer terminates prematurely, an end-of-stream marker is sent to the reader.) The unnamed pipe persists until both the writer and the reader terminate.
+
+In a program : 
+    - Use the fork() system call to create a child process
+    - Create two file descriptors of the same channel with pipe(), one for the writing end (in the parent process) and one for the reading end (in the child process)
+    - In each process close the undesired file descriptor
+    - Avoid zombies with the signal(SIGCHLD, SIG_IGN) or wait(NULL)
+    - Use the _exit(0) to notify the parent as soon as possible that the child has terminated.
+
+
+Named pipes:
+
+An unnamed pipe has no backing file: the system maintains an in-memory buffer to transfer bytes from the writer to the reader. Once the writer and reader terminate, the buffer is reclaimed, so the unnamed pipe goes away. By contrast, a named pipe has a backing file and a distinct API.
+
+-> mkfifo command or mkfifo() system call will create a named pipe.
+
+The fifoWriter program creates a named pipe for writing with a backing file name passes to mkfifo(). Then open a pipe, write some data in it and unlink the pipeName.
+
+The fifoReader opens the pipe through the backing file and read the bytes. Then closes the pipe and unlinks the backing file before terminating.
+
 
 Differences : 
 A named pipe has a specific name which can be given to it by the user. It's accessible through two file descriptors.

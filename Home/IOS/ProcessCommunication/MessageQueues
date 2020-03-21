@@ -1,0 +1,12 @@
+Pipes have strict FIFO behavior: the first byte written is the first byte read, the second byte written is the second byte read, and so forth. Message queues can behave in the same way but are flexible enough that byte chunks can be retrieved out of FIFO order.
+
+As the name suggests, a message queue is a sequence of messages, each of which has two parts:
+
+    - The payload, which is an array of bytes (char in C)
+    - A type, given as a positive integer value; types categorize messages for flexible retrieval
+
+The sender program sends messages (msgsnd() function) to the message queue with a specific order (according to the types) configured non-blocking.
+
+The receiver program retrieves the messages in the order we ask for according to the types.
+
+The message queue persists even after the sender process creates the queue, writes to it and exits. The queue goes away only after the receiver process explicitly removes it with the call to msgctl().

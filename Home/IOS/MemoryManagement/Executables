@@ -1,4 +1,5 @@
 There are four stages for a C program to become an executable:
+
 1. Pre-processing : This is the very first satge through which a source code passes. In this stage the following tasks are done :
     - Macro substitution
     - Comments are stripped off
@@ -6,5 +7,18 @@ There are four stages for a C program to become an executable:
 2. Compilation : Translate code to assembly code.
 3. Assembly : Translate assembly code to machine code.
 4. Linking : Resolve address of external routines and generate executable.
+
+ELF files:
+Executable Linkable File defines the structure for binaries, libraries, and core files. The formal specification allows the operating system to interpreter its underlying machine instructions correctly. ELF files are typically the output of a compiler or linker and are a binary format. With the right tools, such file can be analyzed and better understood.
+
+ELF Headers can give a lot of information about the file:
+    - Magic
+    - Class
+    - Data
+    - Version
+    - OS
+    - Type
+    - Machine
+    ...
 
 

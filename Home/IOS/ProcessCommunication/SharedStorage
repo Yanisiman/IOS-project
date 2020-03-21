@@ -1,0 +1,27 @@
+A process is a program in execution, and each process has its own address space, which comprises the memory locations that the process is allowed to access. A process has one or more threads of execution, which are sequences of executable instructions: a single-threaded process has just one thread, whereas a multi-threaded process has more than one thread. Threads within a process share various resources, in particular, address space. Accordingly, threads within a process can communicate straightforwardly through shared memory.
+
+Shared files:
+
+Consider the relatively simple case in which one process (producer) creates and writes to a file, and another process (consumer) reads from this same file:
+
+The obvious challenge in using this IPC mechanism is that a race condition might arise: the producer and the consumer might access the file at exactly the same time, thereby making the outcome indeterminate. To avoid a race condition, the file must be locked in a way that prevents a conflict between a write operation and any another operation, whether a read or a write. The locking API in the standard system library can be summarized as follows:
+
+    - A producer should gain an exclusive lock on the file before writing to the file. An exclusive lock can be held by one process at most, which rules out a race condition because no other process can access the file until the lock is released.
+
+    - A consumer should gain at least a shared lock on the file before reading from the file. Multiple readers can hold a shared lock at the same time, but no writer can access a file when even a single reader holds a shared lock.
+
+
+A shared lock promotes efficiency. If one process is just reading a file and not changing its contents, there is no reason to prevent other processes from doing the same. Writing, however, clearly demands exclusive access to a file.
+
+
+Shared Memory:
+
+Linux systems provide two separate APIs for shared memory: the legacy System V API and the more recent POSIX one. These APIs should never be mixed in a single application, however. A downside of the POSIX approach is that features are still in development and dependent upon the installed kernel version, which impacts code portability. For example, the POSIX API, by default, implements shared memory as a memory-mapped file: for a shared memory segment, the system maintains a backing file with corresponding contents. Shared memory under POSIX can be configured without a backing file, but this may impact portability. My example uses the POSIX API with a backing file, which combines the benefits of memory access (speed) and file storage (persistence).
+
+The shared-memory example has two programs, named memwriter and memreader, and uses a semaphore to coordinate their access to the shared memory. Whenever shared memory comes into the picture with a writer, whether in multi-processing or multi-threading, so does the risk of a memory-based race condition; hence, the semaphore is used to coordinate (synchronize) access to the shared memory.
+
+Here a semaphore acts as a mutex: a mutual exclusion construct. The shared-memory example uses a semaphore as a mutex. When the semaphore's value is 0, the memwriter alone can access the shared memory. After writing, this process increments the semaphore's value, thereby allowing the memreader to read the shared memory.
+
+In both the memwriter and memreader programs, the shared-memory functions of main interest are shm_open and mmap: on success, the first call returns a file descriptor for the backing file, which the second call then uses to get a pointer to the shared memory segment. The calls to shm_open are similar in the two programs except that the memwriter program creates the shared memory, whereas the memreader only accesses this already created memory.
+
+The memreader, accesses the semaphore then goes into a wait state until the memwriter increments the semaphore. Once the wait is over, the memreader reads the ASCII bytes from shared memory, cleans up and terminates.

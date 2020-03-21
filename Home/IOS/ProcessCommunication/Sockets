@@ -1,0 +1,26 @@
+Just as pipes come in two flavors (named and unnamed), so do sockets. IPC sockets (aka Unix domain sockets) enable channel-based communication for processes on the same physical device (host), whereas network sockets enable this kind of IPC for processes that can run on different hosts, thereby bringing networking into play. Network sockets need support from an underlying protocol such as TCP (Transmission Control Protocol) or the lower-level UDP (User Datagram Protocol).
+
+By contrast, IPC sockets rely upon the local system kernel to support communication; in particular, IPC sockets communicate using a local file as a socket address. Despite these implementation differences, the IPC socket and network socket APIs are the same in the essentials. The forthcoming example covers network sockets, but the sample server and client programs can run on the same machine because the server uses network address localhost (127.0.0.1), the address for the local machine on the local machine.
+
+Sockets configured as streams (discussed below) are bidirectional, and control follows a client/server pattern: the client initiates the conversation by trying to connect to a server, which tries to accept the connection. If everything works, requests from the client and responses from the server then can flow through the channel until this is closed on either end, thereby breaking the connection.
+
+An iterative server, which is suited for development only, handles connected clients one at a time to completion: the first client is handled from start to finish, then the second, and so on. The downside is that the handling of a particular client may hang, which then starves all the clients waiting behind. A production-grade server would be concurrent, typically using some mix of multi-processing and multi-threading. For example, the Nginx web server on my desktop machine has a pool of four worker processes that can handle client requests concurrently. The following code example keeps the clutter to a minimum by using an iterative server; the focus thus remains on the basic API, not on concurrency.
+
+Finally, the socket API has evolved significantly over time as various POSIX refinements have emerged. The current sample code for server and client is deliberately simple but underscores the bidirectional aspect of a stream-based socket connection. Here's a summary of the flow of control, with the server started in a terminal then the client started in a separate terminal:
+
+The server awaits client connections and, given a successful connection, reads the bytes from the client.
+To underscore the two-way conversation, the server echoes back to the client the bytes received from the client. These bytes are ASCII character codes, which make up book titles.
+The client writes book titles to the server process and then reads the same titles echoed from the server. Both the server and the client print the titles to the screen. Here is the server's output, essentially the same as the client's:
+
+The server program performs the classic four-step to ready itself for client requests and then to accept individual requests. Each step is named after a system function that the server calls:
+
+    - socket(…): get a file descriptor for the socket connection
+    - bind(…): bind the socket to an address on the server's host
+    - listen(…): listen for client requests
+    - accept(…): accept a particular client request
+
+The client program's setup code is similar to the server's. The principal difference between the two is that the client neither listens nor accepts, but instead connects.
+
+The connect call might fail for several reasons; for example, the client has the wrong server address or too many clients are already connected to the server. If the connect operation succeeds, the client writes requests and then reads the echoed responses in a for loop. After the conversation, both the server and the client close the read/write socket, although a close operation on either side is sufficient to close the connection. The client exits thereafter but, as noted earlier, the server remains open for business.
+
+The socket example, with request messages echoed back to the client, hints at the possibilities of arbitrarily rich conversations between the server and the client. Perhaps this is the chief appeal of sockets. It is common on modern systems for client applications (e.g., a database client) to communicate with a server through a socket. As noted earlier, local IPC sockets and network sockets differ only in a few implementation details; in general, IPC sockets have lower overhead and better performance. The communication API is essentially the same for both.
