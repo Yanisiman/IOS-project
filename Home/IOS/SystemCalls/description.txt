@@ -1,0 +1,1 @@
+System Calls : This section is about system calls and how they work with the interrupts in the OS.

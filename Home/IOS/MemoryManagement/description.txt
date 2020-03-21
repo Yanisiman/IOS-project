@@ -1,0 +1,1 @@
+Memory Management : This is the section about address spaces, the virtualization of the memory and how C programs are compiled to become executables.
