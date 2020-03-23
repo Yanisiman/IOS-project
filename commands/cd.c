@@ -52,7 +52,7 @@ int cd(int argc, char *argv[])
     }
 
     tellDescription();
-    printf("%s\n", getcwd(s, BUFFERSIZE)); 
+    //printf("%s\n", getcwd(s, BUFFERSIZE)); 
 
     return 0;
 } 
