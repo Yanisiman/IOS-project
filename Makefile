@@ -1,6 +1,6 @@
 CPPFLAGS = -MMD
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g 
+CFLAGS = -Wall -Wextra -Werror -g
 
 SRC = main.c commands/pwd.c commands/ls.c commands/cd.c commands/less.c commands/help.c
 OBJ = ${SRC:.c=.o}

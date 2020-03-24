@@ -8,13 +8,17 @@
 #include <dirent.h>
 #include <string.h>
 
-void listdir(char *pwd, int indent, int recursive, int info)
+void listdir(char *pwd, int indent, int recursive, int info, int multiple)
 {
     DIR *dir;
     struct dirent *entry;
 
+    ssize_t k_pwd = strlen(pwd);
+
     if (!(dir = opendir(pwd))){
-        write(STDOUT_FILENO, "Error: can't open the file or directory\n", 40);
+        write(STDOUT_FILENO, "Error: can't open the file or directory: ", 41);
+        write(STDOUT_FILENO, pwd, k_pwd);
+        write(STDOUT_FILENO, "\n", 1);
         return;
     }
 
@@ -22,6 +26,12 @@ void listdir(char *pwd, int indent, int recursive, int info)
     int d=0;
     struct dirent files[512];
     int f=0;
+
+    if (multiple)
+    {
+        write(STDOUT_FILENO, pwd, k_pwd);
+        write(STDOUT_FILENO, "/\n", 1);
+    }
 
     while((entry = readdir(dir)) != NULL)
     {
@@ -42,6 +52,7 @@ void listdir(char *pwd, int indent, int recursive, int info)
             }
         }
     }
+
 
     write(STDOUT_FILENO, "\033[0;32m", 7);
     write(STDOUT_FILENO, "Locations :\n", 12);
@@ -77,13 +88,19 @@ void listdir(char *pwd, int indent, int recursive, int info)
         perms[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
 
 
-
         snprintf(path, sizeof(path), "%s/%s", pwd, direst->d_name);
+
         write(STDOUT_FILENO, "\033[0;31m", 7);
-        printf("%*s%s[%s]\n", indent, "", info ? perms : "", direst->d_name);
+        for (int i = 0; i < indent; i++)
+            write(STDOUT_FILENO, " ", 1);
+        if (info)
+            write(STDOUT_FILENO, perms, 10);
+        printf(" [%s]\n", direst->d_name);
+        fflush(stdout);
         write(STDOUT_FILENO, "\033[0m", 4);
+
         if (recursive)
-            listdir(path, indent + 2, recursive, info);
+            listdir(path, indent + 2, recursive, info, multiple);
     }
 
     write(STDOUT_FILENO, "\033[0;32m", 7);
@@ -120,7 +137,12 @@ void listdir(char *pwd, int indent, int recursive, int info)
 
 
         write(STDOUT_FILENO, "\033[0;34m", 7);
-        printf("%*s- %s %s\n", indent, "", info ? perms : "", filest->d_name);
+        for (int i = 0; i < indent; i++)
+            write(STDOUT_FILENO, " ", 1);
+        if (info)
+            write(STDOUT_FILENO, perms, 10);
+        printf(" %s\n", filest->d_name);
+        fflush(stdout);
         write(STDOUT_FILENO, "\033[0m", 4);
     }
 
@@ -158,13 +180,14 @@ void ls(int argc, char** argv)
 
     if (k == 0)
     {
-        listdir(pwd, 2, recursive, info);
+        listdir(pwd, 2, recursive, info, 0);
     }
     else
     {
-        for (int j; j < k; j++)
+        int multiple = k > 1;
+        for (int j = 0; j < k; j++)
         {
-            listdir(argv[i], 2, recursive, info);
+            listdir(argv[i], 2, recursive, info, multiple);
             i++;
         }
     }
@@ -175,6 +198,6 @@ void simple_ls()
     char tmp[256];
     char *pwd = getcwd(tmp, sizeof(tmp));
 
-    listdir(pwd, 2, 0, 0);
+    listdir(pwd, 2, 0, 0, 0);
 
 }
