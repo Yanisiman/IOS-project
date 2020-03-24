@@ -5,12 +5,12 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include "commands/pwd.h"
-#include "commands/ls.h"
-#include "commands/cd.h"
-#include "commands/less.h"
-#include "commands/help.h"
-
+#include "commands/pwd/pwd.h"
+#include "commands/ls/ls.h"
+#include "commands/cd/cd.h"
+#include "commands/less/less.h"
+#include "commands/help/help.h"
+#include "commands/man/man.h"
 
 #define BUFF_SIZE 512
 
@@ -93,32 +93,21 @@ int main()
                     || strcmp(parse_command[0], "exit") == 0)
                 _exit(EXIT_FAILURE);
 
-
             else if (strcmp(parse_command[0], "ls") == 0)
-            {
                 ls(argc, parse_command);
-            }
             else if (strcmp(parse_command[0], "pwd") == 0)
-            {
                 pwd(arr,256);
-            }
             else if (strcmp(parse_command[0], "less") == 0)
-            {
                 less(argc, parse_command);
-            }
-
             else if (strcmp(parse_command[0], "clear") == 0)
-            {
-                write(STDOUT_FILENO, "\e[1;1H\e[2J", 12);
-            }
+                write(STDOUT_FILENO, "\e[1;1H\e[2J", 11);
+            else if (strcmp(parse_command[0], "help") == 0)
+                help();
+            else if (strcmp(parse_command[0], "man") == 0)
+                man(argc, parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
-            }
-
-            if (strcmp(parse_command[0], "help") == 0)
-            {
-                help();
             }
 
             free(parse_command);

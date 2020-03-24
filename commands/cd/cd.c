@@ -11,11 +11,7 @@
 int tellDescription()
 {
     int filedesc = open("description.txt", O_RDONLY);
-    if(filedesc < 0)
-    {
-        //errx(EXIT_FAILURE, "Error: No corresponding file");
-    }
-    else
+    if(filedesc > 0)
     {
         while(1)
         {
@@ -34,7 +30,7 @@ int cd(int argc, char *argv[])
     char s[BUFFERSIZE] = { 0 }; 
     int a;
 
-    // printf("%s\n", getcwd(s, BUFFERSIZE));     
+    // printf("%s\n", getcwd(s, BUFFERSIZE));
 
     if(argc < 2){
         chdir(getenv("HOME"));
