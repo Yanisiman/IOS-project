@@ -96,7 +96,7 @@ int main()
 
             else if (strcmp(parse_command[0], "ls") == 0)
             {
-                simple_ls();
+                ls(argc, parse_command);
             }
             else if (strcmp(parse_command[0], "pwd") == 0)
             {
