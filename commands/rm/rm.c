@@ -63,15 +63,15 @@ int rm(char *argv[]){
 	}else if( strcmp(argv[1], "largeBoulder") == 0){
 		
 		perform_rm(argv);
-		write(1,  "The boulder disappears with a pop. The way is clear now.\n", 57);
+		write(STDOUT_FILENO,  "The boulder disappears with a pop. The way is clear now.\n", 57);
 		
 	}else if(strcmp(argv[1],"earOfCorn") == 0){
 		
-		write(1,"Why would you destroy a starving man’s only food?\n", 52);
+		write(STDOUT_FILENO,"Why would you destroy a starving man’s only food?\n", 52);
 		
 	}else if( strcmp(argv[1], "thornyBrambles") == 0 ){
 		
-		write(1,"You speak the words of the Remove spell and the brambles glimmer a deep blue." 
+		write(STDOUT_FILENO,"You speak the words of the Remove spell and the brambles glimmer a deep blue." 
 			  " They seem to be protected by a password.\n", 119);
 
 		char **parse_password;
@@ -95,12 +95,12 @@ int rm(char *argv[]){
 		if (strcmp(parse_password[0], "brambles_b_gone") == 0){
 			
 			perform_rm(argv);
-			write(0, "The brambles catch fire, choking you with a thick black smoke."
+			write(STDOUT_FILENO, "The brambles catch fire, choking you with a thick black smoke."
 				  " When the smoke clears, they’re gone.\n",102);
 				  
 		}else{
 			
-			write(0,"Red sparks arc across the brambles before fizzling out. They are "
+			write(STDOUT_FILENO,"Red sparks arc across the brambles before fizzling out. They are "
 			      "definitely still there. Nice try though.\n",106);
 				  
 		}
@@ -108,17 +108,17 @@ int rm(char *argv[]){
 			 strcmp(argv[1],"uglierTroll") == 0){
 				 
 				perform_rm(argv);
-				write(0,"The troll looks briefy surprised, then vanishes with an unpleasant"
+				write(STDOUT_FILENO,"The troll looks briefy surprised, then vanishes with an unpleasant"
 				" squelching sound.\n",85);	 
 				
 	}else if(strcmp(argv[1],"absolutelyHideousTroll") == 0){
 		
-				write(0,"The troll belches spectacularly, and you could swear he actually "
+				write(STDOUT_FILENO,"The troll belches spectacularly, and you could swear he actually "
 				      "smirks. You won’t get rid of him that easily, not without admin "
 					  "privileges.\n",143);	 
 			 }
 	else{
-		printf("%s", "wtf");
+		printf("%s", "Command 'rm' not found in this room");
 	}
 	return 0;
 }
