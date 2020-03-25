@@ -116,8 +116,8 @@ int rm(char *argv[]){
 				write(STDOUT_FILENO,"The troll belches spectacularly, and you could swear he actually "
 				      "smirks. You won’t get rid of him that easily, not without admin "
 					  "privileges.\n",143);	 
-	else{
-		printf("%s", "Command 'rm' not found in this room");
+	}else{
+		write(STDOUT_FILENO, "Command 'rm' not found in this room\n",36);
 	}
 	return 0;
 }
