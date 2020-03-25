@@ -25,6 +25,7 @@ int tellDescription()
     }
     return 0;
 }
+
 int cd(int argc, char *argv[]) 
 {
     char s[BUFFERSIZE] = { 0 }; 
@@ -43,7 +44,10 @@ int cd(int argc, char *argv[])
 
     if(a < 0)
     {
-        write(STDOUT_FILENO, "Error occured doing cd command\n", 31);
+        ssize_t k = strlen(argv[1]);
+        write(STDOUT_FILENO, "Error: can't find any folder named: \n", 38);
+        write(STDOUT_FILENO, argv[1], k);
+        write(STDOUT_FILENO, "\n", 1);
         return -1;
     }
 
