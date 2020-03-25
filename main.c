@@ -41,7 +41,7 @@ char** parse_input(char *buf)
 
 int main()
 {
-<<<<<<< HEAD
+
     char arr[256];
     char **parse_command;
 
