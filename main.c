@@ -10,6 +10,7 @@
 #include "commands/cd.h"
 #include "commands/less.h"
 #include "commands/help.h"
+#include "commands/rm.h"
 
 
 #define BUFF_SIZE 512
@@ -101,6 +102,10 @@ int main()
 			else if (strcmp(parse_command[0], "less") == 0)
 			{
 				less(argc, parse_command);
+			}
+			else if (strcmp(parse_command[0], "rm") == 0)
+			{
+				rm(parse_command);
 			}
 
 			else if (strcmp(parse_command[0], "clear") == 0)
