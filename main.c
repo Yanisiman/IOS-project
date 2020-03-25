@@ -5,12 +5,15 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+
 #include "commands/pwd/pwd.h"
 #include "commands/ls/ls.h"
 #include "commands/cd/cd.h"
 #include "commands/less/less.h"
 #include "commands/help/help.h"
 #include "commands/man/man.h"
+#include "commands/rm/rm.h"
+
 
 #define BUFF_SIZE 512
 
@@ -38,6 +41,7 @@ char** parse_input(char *buf)
 
 int main()
 {
+<<<<<<< HEAD
     char arr[256];
     char **parse_command;
 
@@ -105,6 +109,8 @@ int main()
                 help();
             else if (strcmp(parse_command[0], "man") == 0)
                 man(argc, parse_command);
+			else if (strcmp(parse_command[0], "rm") == 0)
+				rm(parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
@@ -130,6 +136,7 @@ int main()
     free(parse_command);
 
     return 0;
+
 
 }
 
