@@ -26,33 +26,46 @@ int tellDescription()
     return 0;
 }
 
-int cd(int argc, char *argv[]) 
+int cd(int argc, char *argv[], char** last_cd)
 {
+    if (argc < 1)
+    {
+        write(STDOUT_FILENO, "An error occured\n", 17);
+        return -1;
+    }
+    if (argc > 2)
+    {
+        write(STDOUT_FILENO, "Error: cd: Too much arguments\n", 28);
+        return -1;
+    }
+
     char s[BUFFERSIZE] = { 0 }; 
     int a;
 
-    // printf("%s\n", getcwd(s, BUFFERSIZE));
-
-    if(argc < 2){
-        chdir(getenv("HOME"));
-        tellDescription();
-        printf("\n%s\n", getcwd(s, BUFFERSIZE));
-        return 1;	
+    if (argc < 2)
+        a = chdir(getenv("HOME"));
+    else
+    {
+        if (argv[1][0] == '-')
+        {
+            //a = chdir(*last_cd);
+            a = chdir(getenv("HOME"));
+        }
+        else
+            a = chdir(argv[1]);
     }
 
-    a = chdir(argv[1]);
-
-    if(a < 0)
+    if (a < 0)
     {
         ssize_t k = strlen(argv[1]);
-        write(STDOUT_FILENO, "Error: can't find any folder named: \n", 38);
+        write(STDOUT_FILENO, "Error: can't find any folder named: ", 37);
         write(STDOUT_FILENO, argv[1], k);
         write(STDOUT_FILENO, "\n", 1);
         return -1;
     }
-
+    *last_cd = getcwd(s, BUFFERSIZE);
     tellDescription();
     //printf("%s\n", getcwd(s, BUFFERSIZE)); 
 
     return 0;
-} 
+}

@@ -36,36 +36,34 @@ char** parse_input(char *buf)
     }
     parse[args] = NULL;
     return parse;
-
-}
-
-void free_parser(char **parse)
-{
-    for (int i = 0; parse[i]; i++)
-        free(parse[i]);
-    free(parse);
 }
 
 int main()
 {
-
-    char arr[256];
+    char arr[BUFF_SIZE] = { 0 };
+    char temp[BUFF_SIZE] = { 0 };
     char **parse_command;
 
-    char shell[2] = {'$', ' '};
+    char shell[1] = {'$'};
 
     ssize_t w;
     ssize_t r = 1;
 
     int status;
 
+    char* path = getcwd(temp, BUFF_SIZE);
+
     char *first_cd[2] = {"cd", "./Home"};
-    if (cd(2, first_cd) == -1)
+    if (cd(2, first_cd, &path) == -1)
         errx(EXIT_FAILURE, "Error trying to cd to Home folder");
 
     while(r != 0)
     {
-        w = write(STDOUT_FILENO, shell, 2);
+        //write(STDOUT_FILENO, "\033[0;41m",7);
+        w = write(STDOUT_FILENO, shell, 1);
+        //write(STDOUT_FILENO, "\033[0m", 4);
+        write(STDOUT_FILENO, " ", 1);
+
         if (w == -1)
             errx(EXIT_FAILURE, "Error while writing");
 
@@ -84,9 +82,12 @@ int main()
         for (; parse_command[argc]; argc++)
             continue;
 
+        char *test = calloc(BUFF_SIZE, sizeof(char));
+        strcpy(test, path);
+
         if (strcmp(parse_command[0], "cd") == 0)
         {
-            cd(argc, parse_command);
+            cd(argc, parse_command, &path);
             free(parse_command);
             continue;
         }
@@ -94,9 +95,11 @@ int main()
         pid_t process = fork();
 
         if (process == -1)
+        {
+            free(parse_command);
             return -1;
-
-        if (process == 0)
+        }
+        else if (process == 0)
         {
             //printf("%d\n", getpid());
 
@@ -118,15 +121,16 @@ int main()
             else if (strcmp(parse_command[0], "help") == 0)
                 help();
             else if (strcmp(parse_command[0], "man") == 0)
-                man(argc, parse_command);
+                man(argc, parse_command, temp);
             else if (strcmp(parse_command[0], "rm") == 0)
                 rm(parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
+                write(STDOUT_FILENO, "Invalid command\n", 16);
             }
 
-            free(parse_command);
+            //free(parse_command);
 
             _exit(0);
         }
@@ -141,6 +145,8 @@ int main()
                     return 1;
             }
         }
+
+        free(parse_command);
     }
 
     free(parse_command);
