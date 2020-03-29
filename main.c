@@ -13,13 +13,15 @@
 #include "commands/help/help.h"
 #include "commands/man/man.h"
 #include "commands/rm/rm.h"
-
+#include "commands/echo/echo.h"
+#include "commands/parser.h"
 
 #define BUFF_SIZE 512
 
 char** parse_input(char *buf)
 {
-    char **parse = calloc(8, sizeof(char *));
+    int alloc = 8;
+    char **parse = calloc(alloc, sizeof(char *));
     if (parse == NULL)
         errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
 
@@ -30,6 +32,13 @@ char** parse_input(char *buf)
     parsed = strtok(buf, separator);
     while (parsed != NULL)
     {
+        if (args == alloc - 1)
+        {
+            alloc *= 2;
+            parse = realloc(parse, alloc * sizeof(char *));
+            if (parse == NULL)
+                errx(EXIT_FAILURE, "Error trying to realloc memory for the parse_input");
+        }
         parse[args] = parsed;
         args++;
         parsed = strtok(NULL, separator);
@@ -82,9 +91,6 @@ int main()
         for (; parse_command[argc]; argc++)
             continue;
 
-        char *test = calloc(BUFF_SIZE, sizeof(char));
-        strcpy(test, path);
-
         if (strcmp(parse_command[0], "cd") == 0)
         {
             cd(argc, parse_command, &path);
@@ -124,6 +130,8 @@ int main()
                 man(argc, parse_command, temp);
             else if (strcmp(parse_command[0], "rm") == 0)
                 rm(parse_command);
+            else if (strcmp(parse_command[0], "echo") == 0)
+                echo(argc, parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);

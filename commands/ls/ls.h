@@ -1,3 +1,6 @@
+#ifndef LS_H
+#define LS_H
+
 #include <dirent.h>
 
 struct flags 
@@ -24,3 +27,5 @@ void display_directories(char *pwd, struct other others, struct flags flag, int 
 void display_files(char *pwd, struct other others, struct flags flag, int f, struct dirent *files);
 
 char *get_stats(char *pwd, char* name);
+
+#endif
