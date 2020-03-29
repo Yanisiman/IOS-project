@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+
+
 #include "commands/pwd/pwd.h"
 #include "commands/ls/ls.h"
 #include "commands/cd/cd.h"
@@ -13,6 +15,8 @@
 #include "commands/help/help.h"
 #include "commands/man/man.h"
 #include "commands/rm/rm.h"
+#include "commands/mv/mv.h"
+
 
 
 #define BUFF_SIZE 512
@@ -121,6 +125,8 @@ int main()
                 man(argc, parse_command);
             else if (strcmp(parse_command[0], "rm") == 0)
                 rm(parse_command);
+           else if (strcmp(parse_command[0], "mv") == 0)
+                mv(argc, parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
