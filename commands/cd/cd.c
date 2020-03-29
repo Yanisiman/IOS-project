@@ -48,8 +48,8 @@ int cd(int argc, char *argv[], char** last_cd)
     {
         if (argv[1][0] == '-')
         {
-            //a = chdir(*last_cd);
-            a = chdir(getenv("HOME"));
+            a = chdir(*last_cd);
+            //a = chdir(getenv("HOME"));
         }
         else
             a = chdir(argv[1]);
