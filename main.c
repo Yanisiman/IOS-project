@@ -18,40 +18,11 @@
 
 #define BUFF_SIZE 512
 
-char** parse_input(char *buf)
-{
-    int alloc = 8;
-    char **parse = calloc(alloc, sizeof(char *));
-    if (parse == NULL)
-        errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
-
-    int args = 0;
-    char *separator = " ";
-    char *parsed;
-
-    parsed = strtok(buf, separator);
-    while (parsed != NULL)
-    {
-        if (args == alloc - 1)
-        {
-            alloc *= 2;
-            parse = realloc(parse, alloc * sizeof(char *));
-            if (parse == NULL)
-                errx(EXIT_FAILURE, "Error trying to realloc memory for the parse_input");
-        }
-        parse[args] = parsed;
-        args++;
-        parsed = strtok(NULL, separator);
-    }
-    parse[args] = NULL;
-    return parse;
-}
-
 int main()
 {
     char arr[BUFF_SIZE] = { 0 };
     char temp[BUFF_SIZE] = { 0 };
-    char **parse_command;
+    char **parse_command; //= malloc(sizeof(char *));
 
     char shell[1] = {'$'};
 
@@ -84,12 +55,18 @@ int main()
         int i = 0;
         for (; buf[i] != '\0'; i++)
             continue;
-        buf[i-1] = ' ';	
-        parse_command = parse_input(buf);
+        buf[i-1] = ' ';
+        struct parsed_part *parsed = parse_all_input(buf);
+        parse_command = parse_part_to_arg(parsed->buf);
 
+        /*
         int argc = 0;
         for (; parse_command[argc]; argc++)
+        {
             continue;
+        }
+        */
+        int argc = parsed->argc;
 
         if (strcmp(parse_command[0], "cd") == 0)
         {

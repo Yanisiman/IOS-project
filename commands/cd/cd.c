@@ -35,11 +35,12 @@ int cd(int argc, char *argv[], char** last_cd)
     }
     if (argc > 2)
     {
-        write(STDOUT_FILENO, "Error: cd: Too much arguments\n", 28);
+        write(STDOUT_FILENO, "Error: cd: Too much arguments\n", 29);
         return -1;
     }
 
-    char s[BUFFERSIZE] = { 0 }; 
+    char s[BUFFERSIZE] = { 0 };
+    getcwd(s, BUFFERSIZE);
     int a;
 
     if (argc < 2)
@@ -63,7 +64,7 @@ int cd(int argc, char *argv[], char** last_cd)
         write(STDOUT_FILENO, "\n", 1);
         return -1;
     }
-    *last_cd = getcwd(s, BUFFERSIZE);
+    strcpy(*last_cd, s);
     tellDescription();
     //printf("%s\n", getcwd(s, BUFFERSIZE)); 
 

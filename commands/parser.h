@@ -9,8 +9,9 @@ struct parsed_arg
 
 struct parsed_part
 {
-    struct parsed_arg *args;
     int argc;
+    char *buf;
+    struct parsed_arg *args;
     struct parsed_part *next;
 };
 
@@ -18,8 +19,16 @@ struct parsed_part *new_parsed_part();
 
 struct parsed_arg *new_parsed_arg();
 
-struct parsed_part *parse_struct_input(char *buf);
+void free_parsed_part(struct parsed_part *parse);
+
+void free_parsed_arg(struct parsed_arg *parse);
+
+void free_parse_command(char **parse);
+
+struct parsed_part *parse_all_input(char *buf);
 
 void parse_args(char *buf, int *argc, struct parsed_arg *args);
+
+char** parse_part_to_arg(char *buf);
 
 #endif

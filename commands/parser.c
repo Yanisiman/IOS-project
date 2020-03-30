@@ -29,7 +29,7 @@ struct parsed_part *new_parsed_part()
 }
 
 
-struct parsed_part *parse_struct_input(char *buf)
+struct parsed_part *parse_all_input(char *buf)
 {
     struct parsed_part *parse = new_parsed_part();
     char *separator= ">";
@@ -40,11 +40,25 @@ struct parsed_part *parse_struct_input(char *buf)
 
     while(parsed != NULL)
     {
-        parse_args(parsed, &temp->argc, temp->args);
+        temp->buf = calloc(strlen(parsed), sizeof(char));
+        strcpy(temp->buf, parsed);
+        //temp->buf = parsed;
         temp->next = new_parsed_part();
         temp = temp->next;
         parsed = strtok(NULL, separator);
     }
+    temp = NULL;
+
+    temp = parse;
+    while(temp->buf)
+    {
+        char *t = calloc(strlen(temp->buf), sizeof(char));
+        strcpy(t, temp->buf);
+        parse_args(t, &temp->argc, temp->args);
+        temp = temp->next;
+        free(t);
+    }
+
     return parse;
 }
 
@@ -56,10 +70,49 @@ void parse_args(char *buf, int *argc, struct parsed_arg *args)
 
     while(parsed)
     {
-        args->value = parsed;
+        args->value = calloc(strlen(parsed), sizeof(char));
+        strcpy(args->value, parsed);
+        //args->value = parsed;
         args->next = new_parsed_arg();
         args = args->next;
-        *argc++;
+        *argc += 1;
         parsed = strtok(NULL, separator);
     }
+    args = NULL;
+}
+
+char** parse_part_to_arg(char *buf)
+{
+    int alloc = 8;
+    char **parse = calloc(alloc, sizeof(char *));
+    if (parse == NULL)
+        errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
+
+    int args = 0;
+    char *separator = " ";
+    char *parsed;
+
+    char *temp = calloc(strlen(buf), sizeof(char));
+    strcpy(temp, buf);
+
+    parsed = strtok(temp, separator);
+    while (parsed != NULL)
+    {
+        if (args == alloc - 1)
+        {
+            alloc *= 2;
+            parse = realloc(parse, alloc * sizeof(char *));
+            if (parse == NULL)
+                errx(EXIT_FAILURE, "Error trying to realloc memory for the parse_input");
+        }
+        parse[args] = calloc(strlen(parsed), sizeof(char));
+        strcpy(parse[args], parsed);
+        //parse[args] = parsed;
+        args++;
+        parsed = strtok(NULL, separator);
+    }
+    parse[args] = NULL;
+
+    free(temp);
+    return parse;
 }
