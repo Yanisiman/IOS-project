@@ -49,6 +49,8 @@ int perform_rm(char *argv[]){
 }
 int rm(char *argv[]){
 
+	if( access( argv[1], F_OK ) != -1 ) {
+
 	
 	if( strcmp(argv[1], "Vendor") == 0 ){
 		
@@ -119,6 +121,9 @@ int rm(char *argv[]){
 					  "privileges.\n",143);	 
 	}else{
 		write(STDOUT_FILENO, "Command 'rm' not found in this room\n",36);
+	}
+	} else {
+		write(STDOUT_FILENO, "Wrong item name given.\n",25);
 	}
 	return 0;
 
