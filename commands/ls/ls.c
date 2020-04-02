@@ -7,8 +7,9 @@
 #include <time.h>
 #include <dirent.h>
 #include <string.h>
+#include "ls.h"
 
-void listdir(char *pwd, int indent, int recursive, int info, int multiple)
+void listdir(char *pwd, struct other others, struct flags flag)
 {
     DIR *dir;
     struct dirent *entry;
@@ -27,7 +28,7 @@ void listdir(char *pwd, int indent, int recursive, int info, int multiple)
     struct dirent files[512];
     int f=0;
 
-    if (multiple)
+    if (others.multiple)
     {
         write(STDOUT_FILENO, pwd, k_pwd);
         write(STDOUT_FILENO, "/\n", 1);
@@ -37,7 +38,7 @@ void listdir(char *pwd, int indent, int recursive, int info, int multiple)
     {
         if (entry->d_type == DT_DIR)
         {
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+            if (flag.hidden || (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0))
             {
                 dirs[d]=*entry;
                 d++;
@@ -45,107 +46,15 @@ void listdir(char *pwd, int indent, int recursive, int info, int multiple)
         }
         else
         {
-            if (entry->d_name[0]!= '.' && strcmp(entry->d_name, "description.txt") !=0)
+            if ((flag.hidden || entry->d_name[0]!= '.') && strcmp(entry->d_name, "description.txt") !=0)
             {
                 files[f]=*entry;
                 f++;;
             }
         }
     }
-
-
-    write(STDOUT_FILENO, "\033[0;32m", 7);
-    write(STDOUT_FILENO, "Locations :\n", 12);
-    write(STDOUT_FILENO, "\033[0m", 4);
-    for(int j=0;j<d;j++)
-    {
-        char path[512];
-        struct dirent *direst;
-        direst=&dirs[j];
-
-        struct stat file_stat;
-        char abspath[512];
-        sprintf(abspath,"%s/%s", pwd, direst->d_name);
-        ssize_t length = strlen(direst->d_name);
-        if (stat(abspath, &file_stat) < 0)
-        {
-            write(STDOUT_FILENO, "Error with stats of the file ", 29);
-            write(STDOUT_FILENO, direst->d_name, length);
-            write(STDOUT_FILENO, "\n", 1);
-            return;
-        }
-
-        char perms[10];
-        perms[0] = (S_ISDIR(file_stat.st_mode)) ? 'd' : '-';
-        perms[1] = (file_stat.st_mode & S_IRUSR) ? 'r' : '-';
-        perms[2] = (file_stat.st_mode & S_IWUSR) ? 'w' : '-';
-        perms[3] = (file_stat.st_mode & S_IXUSR) ? 'x' : '-';
-        perms[4] = (file_stat.st_mode & S_IRGRP) ? 'r' : '-';
-        perms[5] = (file_stat.st_mode & S_IWGRP) ? 'w' : '-';
-        perms[6] = (file_stat.st_mode & S_IXGRP) ? 'x' : '-';
-        perms[7] = (file_stat.st_mode & S_IROTH) ? 'r' : '-';
-        perms[8] = (file_stat.st_mode & S_IWOTH) ? 'w' : '-';
-        perms[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
-
-
-        snprintf(path, sizeof(path), "%s/%s", pwd, direst->d_name);
-
-        write(STDOUT_FILENO, "\033[0;31m", 7);
-        for (int i = 0; i < indent; i++)
-            write(STDOUT_FILENO, " ", 1);
-        if (info)
-            write(STDOUT_FILENO, perms, 10);
-        printf(" [%s]\n", direst->d_name);
-        fflush(stdout);
-        write(STDOUT_FILENO, "\033[0m", 4);
-
-        if (recursive)
-            listdir(path, indent + 2, recursive, info, multiple);
-    }
-
-    write(STDOUT_FILENO, "\033[0;32m", 7);
-    write(STDOUT_FILENO, "\nItems :\n", 9);
-    write(STDOUT_FILENO, "\033[0m", 4);
-    for(int i=0;i<f;i++)
-    {
-        struct dirent *filest;
-        filest=&files[i];
-
-        struct stat file_stat;
-        char abspath[512];
-        sprintf(abspath,"%s/%s", pwd, filest->d_name);
-        ssize_t length = strlen(filest->d_name);
-        if (stat(abspath, &file_stat) < 0)
-        {
-            write(STDOUT_FILENO, "Error with stats of the file ", 29);
-            write(STDOUT_FILENO, filest->d_name, length);
-            write(STDOUT_FILENO, "\n", 1);
-            return;
-        }
-
-        char perms[10];
-        perms[0] = (S_ISDIR(file_stat.st_mode)) ? 'd' : '-';
-        perms[1] = (file_stat.st_mode & S_IRUSR) ? 'r' : '-';
-        perms[2] = (file_stat.st_mode & S_IWUSR) ? 'w' : '-';
-        perms[3] = (file_stat.st_mode & S_IXUSR) ? 'x' : '-';
-        perms[4] = (file_stat.st_mode & S_IRGRP) ? 'r' : '-';
-        perms[5] = (file_stat.st_mode & S_IWGRP) ? 'w' : '-';
-        perms[6] = (file_stat.st_mode & S_IXGRP) ? 'x' : '-';
-        perms[7] = (file_stat.st_mode & S_IROTH) ? 'r' : '-';
-        perms[8] = (file_stat.st_mode & S_IWOTH) ? 'w' : '-';
-        perms[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
-
-
-        write(STDOUT_FILENO, "\033[0;34m", 7);
-        for (int i = 0; i < indent; i++)
-            write(STDOUT_FILENO, " ", 1);
-        if (info)
-            write(STDOUT_FILENO, perms, 10);
-        printf(" %s\n", filest->d_name);
-        fflush(stdout);
-        write(STDOUT_FILENO, "\033[0m", 4);
-    }
-
+    display_files(pwd, others, flag, f, files);
+    display_directories(pwd, others, flag, d, dirs);
     closedir(dir);
     write(STDOUT_FILENO, "\n", 1);
 }
@@ -156,7 +65,9 @@ void ls(int argc, char** argv)
     if (argc < 1)
         write(STDOUT_FILENO, "An error occured\n", 17);
 
-    int recursive = 0, info = 0;
+    struct flags flag = {0, 0, 0};
+    struct other others = {2, 0};
+
     char tmp[256];
     char *pwd = getcwd(tmp, sizeof(tmp));
     int i = 1;
@@ -164,14 +75,23 @@ void ls(int argc, char** argv)
 
     if (argc > 1 && argv[1][0] == '-')
     {
-        if (strcmp(argv[1],"-l") == 0)
-            info = 1;
-        if (strcmp(argv[1],"-R") == 0)
-            recursive = 1;
-        if (strcmp(argv[1],"-lR") == 0 || strcmp(argv[1],"-Rl") == 0)
+        int j = 1;
+        int len = strlen(argv[1]);
+        for (; j < len; j++)
         {
-            recursive = 1;
-            info = 1;
+            if (argv[1][j] == 'l')
+                flag.info = 1;
+            else if (argv[1][j] == 'R')
+                flag.recursive = 1;
+            else if (argv[1][j] == 'a')
+                flag.hidden = 1;
+            else
+            {
+                char opt[1] = {argv[1][j]};
+                write(STDOUT_FILENO, "Error: option ", 14);
+                write(STDOUT_FILENO, opt, 1);
+                write(STDOUT_FILENO, " doesn't exit\n", 14);
+            }
         }
         i++;
         k--;
@@ -180,14 +100,14 @@ void ls(int argc, char** argv)
 
     if (k == 0)
     {
-        listdir(pwd, 2, recursive, info, 0);
+        listdir(pwd, others, flag);
     }
     else
     {
-        int multiple = k > 1;
+        others.multiple = k > 1;
         for (int j = 0; j < k; j++)
         {
-            listdir(argv[i], 2, recursive, info, multiple);
+            listdir(argv[i], others, flag);
             i++;
         }
     }
@@ -197,7 +117,97 @@ void simple_ls()
 {
     char tmp[256];
     char *pwd = getcwd(tmp, sizeof(tmp));
+    struct flags f = {0, 0, 0};
+    struct other others = {2, 0};
+    listdir(pwd, others, f);
 
-    listdir(pwd, 2, 0, 0, 0);
+}
+
+void display_directories(char *pwd, struct other others, struct flags flag, int d, struct dirent *dirs)
+{
+    write(STDOUT_FILENO, "\033[0;32m", 7);
+    write(STDOUT_FILENO, "Locations :\n", 12);
+    write(STDOUT_FILENO, "\033[0m", 4);
+    for(int j=0;j<d;j++)
+    {
+        char path[512];
+        struct dirent *direst;
+        direst=&dirs[j];
+
+        char *perms = get_stats(pwd, direst->d_name);
+
+        snprintf(path, sizeof(path), "%s/%s", pwd, direst->d_name);
+
+        write(STDOUT_FILENO, "\033[0;31m", 7);
+        for (int i = 0; i < others.indent; i++)
+            write(STDOUT_FILENO, " ", 1);
+        if (flag.info)
+            write(STDOUT_FILENO, perms, 10);
+        printf(" [%s]\n", direst->d_name);
+        fflush(stdout);
+        write(STDOUT_FILENO, "\033[0m", 4);
+        free(perms);
+
+        if (flag.recursive && strcmp(direst->d_name, ".") != 0 && strcmp(direst->d_name, "..") != 0)
+        {
+            others.indent += 2;
+            listdir(path, others, flag);
+        }
+    }
+
+}
+
+void display_files(char *pwd, struct other others, struct flags flag, int f, struct dirent *files)
+{
+    write(STDOUT_FILENO, "\033[0;32m", 7);
+    write(STDOUT_FILENO, "\nItems :\n", 9);
+    write(STDOUT_FILENO, "\033[0m", 4);
+    for(int i=0;i<f;i++)
+    {
+        struct dirent *filest;
+        filest=&files[i];
+
+        char *perms = get_stats(pwd, filest->d_name);
+
+        write(STDOUT_FILENO, "\033[0;34m", 7);
+        for (int i = 0; i < others.indent; i++)
+            write(STDOUT_FILENO, " ", 1);
+        if (flag.info)
+            write(STDOUT_FILENO, perms, 10);
+        printf(" %s\n", filest->d_name);
+        fflush(stdout);
+        write(STDOUT_FILENO, "\033[0m", 4);
+        free(perms);
+    }
+
+}
+
+char *get_stats(char *pwd, char *name)
+{
+    struct stat file_stat;
+    char abspath[512];
+    sprintf(abspath,"%s/%s", pwd, name);
+    ssize_t length = strlen(name);
+    if (stat(abspath, &file_stat) < 0)
+    {
+        write(STDOUT_FILENO, "Error with stats of the file ", 29);
+        write(STDOUT_FILENO, name, length);
+        write(STDOUT_FILENO, "\n", 1);
+        return "";
+    }
+
+    char *perms = calloc(10, sizeof(char));
+    perms[0] = (S_ISDIR(file_stat.st_mode)) ? 'd' : '-';
+    perms[1] = (file_stat.st_mode & S_IRUSR) ? 'r' : '-';
+    perms[2] = (file_stat.st_mode & S_IWUSR) ? 'w' : '-';
+    perms[3] = (file_stat.st_mode & S_IXUSR) ? 'x' : '-';
+    perms[4] = (file_stat.st_mode & S_IRGRP) ? 'r' : '-';
+    perms[5] = (file_stat.st_mode & S_IWGRP) ? 'w' : '-';
+    perms[6] = (file_stat.st_mode & S_IXGRP) ? 'x' : '-';
+    perms[7] = (file_stat.st_mode & S_IROTH) ? 'r' : '-';
+    perms[8] = (file_stat.st_mode & S_IWOTH) ? 'w' : '-';
+    perms[9] = (file_stat.st_mode & S_IXOTH) ? 'x' : '-';
+
+    return perms;
 
 }

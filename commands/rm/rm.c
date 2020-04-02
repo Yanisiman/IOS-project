@@ -10,44 +10,45 @@
 
 char** parse_in(char *buf)
 {
-	char **parse = calloc(8, sizeof(char *));
-	if (parse == NULL)
-		errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
+    char **parse = calloc(8, sizeof(char *));
+    if (parse == NULL)
+        errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
 
-	int args = 0;
-	char *separator = " ";
-	char *parsed;
+    int args = 0;
+    char *separator = " ";
+    char *parsed;
 
-	parsed = strtok(buf, separator);
-	while (parsed != NULL)
-	{
-		parse[args] = parsed;
-		args++;
-		parsed = strtok(NULL, separator);
-	}
-	parse[args] = NULL;
-	return parse;
+    parsed = strtok(buf, separator);
+    while (parsed != NULL)
+    {
+        parse[args] = parsed;
+        args++;
+        parsed = strtok(NULL, separator);
+    }
+    parse[args] = NULL;
+    return parse;
 
 }
 int perform_rm(char *argv[]){
-	
-	struct stat file_info; //pointer to stat struct
-	stat(argv[1], &file_info); //stat system call
-	int a; // for indicating if rm command was success
 
-	if (S_ISDIR(file_info.st_mode)) { // is a directory
-           a = rmdir(argv[1]);
+    struct stat file_info; //pointer to stat struct
+    stat(argv[1], &file_info); //stat system call
+    int a; // for indicating if rm command was success
+
+    if (S_ISDIR(file_info.st_mode)) { // is a directory
+        a = rmdir(argv[1]);
     }else{                            // is a file
-		a = unlink(argv[1]);
-	}
-	
-	if(a<0){
-			write(STDOUT_FILENO, "Error occured doing rm command\n", 31);
-			return -1;
-		}
-	return 0;
+        a = unlink(argv[1]);
+    }
+
+    if(a<0){
+        write(STDOUT_FILENO, "Error occured doing rm command\n", 31);
+        return -1;
+    }
+    return 0;
 }
 int rm(char *argv[]){
+
 	
 	if( strcmp(argv[1], "Vendor") == 0 ){
 		
@@ -120,4 +121,5 @@ int rm(char *argv[]){
 		write(STDOUT_FILENO, "Command 'rm' not found in this room\n",36);
 	}
 	return 0;
+
 }

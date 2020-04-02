@@ -6,6 +6,8 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+
+
 #include "commands/pwd/pwd.h"
 #include "commands/ls/ls.h"
 #include "commands/cd/cd.h"
@@ -13,6 +15,8 @@
 #include "commands/help/help.h"
 #include "commands/man/man.h"
 #include "commands/rm/rm.h"
+#include "commands/mv/mv.h"
+
 
 
 #define BUFF_SIZE 512
@@ -37,6 +41,13 @@ char** parse_input(char *buf)
     parse[args] = NULL;
     return parse;
 
+}
+
+void free_parser(char **parse)
+{
+    for (int i = 0; parse[i]; i++)
+        free(parse[i]);
+    free(parse);
 }
 
 int main()
@@ -79,8 +90,8 @@ int main()
 
         if (strcmp(parse_command[0], "cd") == 0)
         {
-            if (cd(argc, parse_command) == -1)
-                errx(EXIT_FAILURE, "Error with cd command");
+            cd(argc, parse_command);
+            free(parse_command);
             continue;
         }
 
@@ -95,7 +106,10 @@ int main()
 
             if (strcmp(parse_command[0], "quit") == 0
                     || strcmp(parse_command[0], "exit") == 0)
+            {
+                free(parse_command);
                 _exit(EXIT_FAILURE);
+            }
 
             else if (strcmp(parse_command[0], "ls") == 0)
                 ls(argc, parse_command);
@@ -109,8 +123,10 @@ int main()
                 help();
             else if (strcmp(parse_command[0], "man") == 0)
                 man(argc, parse_command);
-			else if (strcmp(parse_command[0], "rm") == 0)
-				rm(parse_command);
+            else if (strcmp(parse_command[0], "rm") == 0)
+                rm(parse_command);
+           else if (strcmp(parse_command[0], "mv") == 0)
+                mv(argc, parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
