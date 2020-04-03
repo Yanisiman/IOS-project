@@ -1,3 +1,4 @@
+#include <netdb.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +7,8 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <signal.h>
+#include <pthread.h>
 
 #include "commands/pwd/pwd.h"
 #include "commands/ls/ls.h"
@@ -17,7 +20,7 @@
 #include "commands/mv/mv.h"
 #include "commands/echo/echo.h"
 #include "commands/cat/cat.h"
-#include "commands/parser.h"
+#include "commands/parser/parser.h"
 
 #define BUFF_SIZE 512
 
@@ -60,7 +63,7 @@ void child_process(char **parse_command, int argc, char* temp)
 }
 
 
-int main()
+int main_()
 {
     char temp[BUFF_SIZE] = { 0 };
     char **parse_command; //= malloc(sizeof(char *));
@@ -177,4 +180,110 @@ int main()
 
     return 0;
 
+}
+
+void* worker(void *arg_)
+{
+    int fd = (int) ((long)arg_);
+    int save_out = dup(STDOUT_FILENO);
+    int save_in = dup(STDIN_FILENO);
+    int save_err = dup(STDERR_FILENO);
+    dup2(fd, STDOUT_FILENO);
+    dup2(fd, STDIN_FILENO);
+    dup2(fd, STDERR_FILENO);
+
+    main_();
+
+    dup2(save_out, STDOUT_FILENO);
+    dup2(save_in, STDIN_FILENO);
+    dup2(save_err, STDERR_FILENO);
+
+    close(save_out);
+    close(save_in);
+    close(save_err);
+    close(fd);
+
+    pthread_exit(NULL);
+}
+
+int main()
+{
+    struct addrinfo hints;
+    struct addrinfo *results;
+    int addrinfo_error;
+
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    addrinfo_error = getaddrinfo("localhost", "2048", &hints, &results);
+
+    if (addrinfo_error != 0)
+        errx(EXIT_FAILURE, "Fail to get address for localhost on port 2048: %s", gai_strerror(addrinfo_error));
+
+    struct addrinfo *rp;
+    int cnx;
+
+    for (rp = results; rp; rp = rp->ai_next)
+    {
+        cnx = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (cnx == -1)
+            continue;
+        int value = 1;
+        if (setsockopt(cnx, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int)) == -1)
+            err(EXIT_FAILURE, "Error caught by setsockopt");
+        if (bind(cnx, rp->ai_addr, rp->ai_addrlen) == 0)
+            break;
+        close(cnx);
+    }
+
+    freeaddrinfo(results);
+
+    if (!rp)
+        err(EXIT_FAILURE, "Couldn't connect");
+    if (listen(cnx, 5) == -1)
+        err(EXIT_FAILURE, "Error listening");
+    int fd;
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(struct sockaddr_in));
+    socklen_t addrlen = sizeof(struct sockaddr_in);
+
+    write(STDOUT_FILENO, "Static Server\nListening to port 2048...\n", 40);
+    while(1)
+    {
+        fd = accept(cnx, (struct sockaddr *) &addr, &addrlen);
+        if (fd == -1)
+            err(EXIT_FAILURE, "Error with accept");
+
+        /*
+           pthread_t thread;
+           int error = pthread_create(&thread, NULL, worker, (void*) ((long)fd));
+           if (error != 0)
+           err(EXIT_FAILURE, "Creating thread failed");
+         */
+
+        pid_t process = fork();
+        if (process == -1)
+            err(EXIT_FAILURE, "Error with the fork()");
+        else if (process == 0)
+        {
+            close(cnx);
+            printf("New connection (pid = %i)\n", getpid());
+            fflush(stdout);
+            worker((void*) ((long) fd));
+
+            signal(SIGCHLD, SIG_IGN);
+            close(fd);
+            printf("Close connection (pid = %i)\n", getpid());
+            return 0;
+        }
+        else 
+        {
+            close(fd);
+        }
+
+    }
+    close(cnx);
+    return 0;
 }
