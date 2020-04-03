@@ -97,10 +97,13 @@ int main()
         for (; buf[i] != '\0'; i++)
             continue;
         buf[i-1] = ' ';
+
         char *sep_redirection = ">";
         char *sep_args = " ";
+        int argc = 0;
+
         struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
-        parse_command = parse_part_to_arg(parsed->buf, sep_args);
+        parse_command = parse_part_to_arg(parsed, sep_args, &argc);
 
         struct parsed_part *temp_parse = parsed;
         struct parsed_part *prev;
@@ -110,7 +113,6 @@ int main()
             temp_parse = temp_parse->next;
         }
 
-        int argc = parsed->argc;
         int fd = -1;
         int output = dup(STDOUT_FILENO);
         if (parsed->next->buf)

@@ -70,7 +70,6 @@ struct parsed_part *parse_all_input(char *buf, char* separator)
     {
         temp->buf = calloc(strlen(parsed) + 1, sizeof(char));
         strcpy(temp->buf, parsed);
-        //temp->buf = parsed;
         temp->next = new_parsed_part();
         temp = temp->next;
         parsed = strtok(NULL, separator);
@@ -100,7 +99,6 @@ void parse_args(char *buf, int *argc, struct parsed_arg *args, char* separator)
     {
         args->value = calloc(strlen(parsed) + 1, sizeof(char));
         strcpy(args->value, parsed);
-        //args->value = parsed;
         args->next = new_parsed_arg();
         args = args->next;
         *argc += 1;
@@ -109,37 +107,48 @@ void parse_args(char *buf, int *argc, struct parsed_arg *args, char* separator)
     args = NULL;
 }
 
-char** parse_part_to_arg(char *buf, char *separator)
+char** parse_part_to_arg(struct parsed_part *p, char *separator, int *args)
 {
     int alloc = 8;
     char **parse = calloc(alloc, sizeof(char *));
     if (parse == NULL)
         errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
 
-    int args = 0;
     char *parsed;
-
-    char *temp = calloc(strlen(buf) + 10, sizeof(char));
-    strcpy(temp, buf);
-
-    parsed = strtok(temp, separator);
-    while (parsed != NULL)
+    struct parsed_part *tp = p;
+    while(tp->buf)
     {
-        if (args == alloc - 1)
-        {
-            alloc *= 2;
-            parse = realloc(parse, alloc * sizeof(char *));
-            if (parse == NULL)
-                errx(EXIT_FAILURE, "Error trying to realloc memory for the parse_input");
-        }
-        parse[args] = calloc(strlen(parsed) + 1, sizeof(char));
-        strcpy(parse[args], parsed);
-        //parse[args] = parsed;
-        args++;
-        parsed = strtok(NULL, separator);
-    }
-    parse[args] = NULL;
+        int i = 0;
+        int j = 0;
+        char *buf = tp->buf;
+        char *temp = calloc(strlen(buf) + 1, sizeof(char));
+        strcpy(temp, buf);
 
-    free(temp);
+        parsed = strtok(temp, separator);
+        while (parsed != NULL)
+        {
+            if (*args == alloc - 1)
+            {
+                alloc *= 2;
+                parse = realloc(parse, alloc * sizeof(char *));
+                if (parse == NULL)
+                    errx(EXIT_FAILURE, "Error trying to realloc memory for the parse_input");
+            }
+            if (*args == 0 || j >= 1 || (j == 0 && i > 1))
+            {
+                parse[*args] = calloc(strlen(parsed) + 1, sizeof(char));
+                strcpy(parse[*args], parsed);
+                *args += 1;
+            }
+            j++;
+            parsed = strtok(NULL, separator);
+        }
+
+        free(temp);
+        tp = tp->next;
+        i++;
+    }
+    parse[*args] = NULL;
+
     return parse;
 }

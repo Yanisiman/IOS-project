@@ -29,6 +29,6 @@ struct parsed_part *parse_all_input(char *buf, char *separator);
 
 void parse_args(char *buf, int *argc, struct parsed_arg *args, char *separator);
 
-char** parse_part_to_arg(char *buf, char *separator);
+char** parse_part_to_arg(struct parsed_part *p, char *separator, int *args);
 
 #endif
