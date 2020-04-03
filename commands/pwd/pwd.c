@@ -15,5 +15,5 @@ void pwd(char arr[], size_t n)
     }
     int w = write(STDOUT_FILENO, path, len+1);
     if (w == -1)
-        write(STDOUT_FILENO, "Error while writing pwd\n", 24);
+        write(STDERR_FILENO, "Error while writing pwd\n", 24);
 }

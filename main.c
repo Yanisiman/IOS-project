@@ -7,8 +7,6 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
-
-
 #include "commands/pwd/pwd.h"
 #include "commands/ls/ls.h"
 #include "commands/cd/cd.h"
@@ -18,13 +16,52 @@
 #include "commands/rm/rm.h"
 #include "commands/mv/mv.h"
 #include "commands/echo/echo.h"
+#include "commands/cat/cat.h"
 #include "commands/parser.h"
 
 #define BUFF_SIZE 512
 
-int main()
+void child_process(char **parse_command, int argc, char* temp)
 {
     char arr[BUFF_SIZE] = { 0 };
+    if (strcmp(parse_command[0], "quit") == 0
+            || strcmp(parse_command[0], "exit") == 0)
+    {
+        _exit(EXIT_FAILURE);
+    }
+
+    else if (strcmp(parse_command[0], "ls") == 0)
+        ls(argc, parse_command);
+    else if (strcmp(parse_command[0], "pwd") == 0)
+        pwd(arr,256);
+    else if (strcmp(parse_command[0], "less") == 0)
+        less(argc, parse_command);
+    else if (strcmp(parse_command[0], "clear") == 0)
+        write(STDOUT_FILENO, "\e[1;1H\e[2J", 11);
+    else if (strcmp(parse_command[0], "help") == 0)
+        help();
+    else if (strcmp(parse_command[0], "man") == 0)
+        man(argc, parse_command, temp);
+    else if (strcmp(parse_command[0], "rm") == 0)
+        rm(parse_command);
+    else if (strcmp(parse_command[0], "mv") == 0)
+        mv(argc, parse_command);
+    else if (strcmp(parse_command[0], "echo") == 0)
+        echo(argc, parse_command);
+    else if (strcmp(parse_command[0], "cat") == 0)
+        cat(argc, parse_command);
+    else
+    {
+        execvp(parse_command[0], parse_command);
+        write(STDOUT_FILENO, "Invalid command\n", 16);
+    }
+
+    _exit(0);
+}
+
+
+int main()
+{
     char temp[BUFF_SIZE] = { 0 };
     char **parse_command; //= malloc(sizeof(char *));
 
@@ -81,7 +118,12 @@ int main()
             char* redirect = prev->args->value;
             fd = open(redirect, O_WRONLY | O_TRUNC | O_CREAT,0644);
             if (fd < 0)
+            {
                 write(STDOUT_FILENO, "An error appeared\n", 18);
+                free_parsed_part(parsed);
+                free_parse_command(parse_command);
+                continue;
+            }
             else
                 dup2(fd, STDOUT_FILENO);
         }
@@ -111,44 +153,11 @@ int main()
         }
         else if (process == 0)
         {
-            //printf("%d\n", getpid());
-
-            if (strcmp(parse_command[0], "quit") == 0
-                    || strcmp(parse_command[0], "exit") == 0)
-            {
-                _exit(EXIT_FAILURE);
-            }
-
-            else if (strcmp(parse_command[0], "ls") == 0)
-                ls(argc, parse_command);
-            else if (strcmp(parse_command[0], "pwd") == 0)
-                pwd(arr,256);
-            else if (strcmp(parse_command[0], "less") == 0)
-                less(argc, parse_command);
-            else if (strcmp(parse_command[0], "clear") == 0)
-                write(STDOUT_FILENO, "\e[1;1H\e[2J", 11);
-            else if (strcmp(parse_command[0], "help") == 0)
-                help();
-            else if (strcmp(parse_command[0], "man") == 0)
-                man(argc, parse_command, temp);
-            else if (strcmp(parse_command[0], "rm") == 0)
-                rm(parse_command);
-           else if (strcmp(parse_command[0], "mv") == 0)
-                mv(argc, parse_command);
-            else if (strcmp(parse_command[0], "echo") == 0)
-                echo(argc, parse_command);
-            else
-            {
-                execvp(parse_command[0], parse_command);
-                write(STDOUT_FILENO, "Invalid command\n", 16);
-            }
-
-            _exit(0);
+            child_process(parse_command, argc, temp);
         }
 
         else 
         {
-            //printf("%d\n", getpid());
             wait(&status);
             free_parsed_part(parsed);
             free_parse_command(parse_command);

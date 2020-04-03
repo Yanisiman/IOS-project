@@ -23,9 +23,9 @@ void man_command(char* commands_path, char* command, int n)
     }
     else
     {
-        write(STDOUT_FILENO, "Error: can't open man for the command: ", 39);
-        write(STDOUT_FILENO, command, n);
-        write(STDOUT_FILENO, "\n", 1);
+        write(STDERR_FILENO, "Error: can't open man for the command: ", 39);
+        write(STDERR_FILENO, command, n);
+        write(STDERR_FILENO, "\n", 1);
     }
 
     return;
@@ -35,7 +35,7 @@ void man(int argc, char** argv, char* path)
 {
     if (argc < 1)
     {
-        write(STDOUT_FILENO, "Error with the man command", 26);
+        write(STDERR_FILENO, "Error with the man command", 26);
         return;
     }
 

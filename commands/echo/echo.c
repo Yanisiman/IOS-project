@@ -7,7 +7,7 @@ void echo(int argc, char **argv)
 {
     if (argc < 1)
     {
-        write(STDOUT_FILENO, "An error occured", 16);
+        write(STDERR_FILENO, "An error occured", 16);
         return;
     }
     for (int i = 1; i < argc; i++)
