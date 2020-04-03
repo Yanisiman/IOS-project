@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <err.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 
@@ -61,13 +62,34 @@ int main()
         struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
         parse_command = parse_part_to_arg(parsed->buf, sep_args);
 
+        struct parsed_part *temp_parse = parsed;
+        struct parsed_part *prev;
+        while(temp_parse->buf)
+        {
+            prev = temp_parse;
+            temp_parse = temp_parse->next;
+        }
+
         int argc = parsed->argc;
+        int fd = -1;
+        int output = dup(STDOUT_FILENO);
+        if (parsed->next->buf)
+        {
+            char* redirect = prev->args->value;
+            fd = open(redirect, O_WRONLY | O_TRUNC | O_CREAT,0644);
+            if (fd < 0)
+                write(STDOUT_FILENO, "An error appeared\n", 18);
+            else
+                dup2(fd, STDOUT_FILENO);
+        }
 
         if (strcmp(parse_command[0], "cd") == 0)
         {
             cd(argc, parse_command, &path);
             free_parsed_part(parsed);
             free_parse_command(parse_command);
+            if (fd > 0)
+                close(fd);
             continue;
         }
 
@@ -77,6 +99,11 @@ int main()
         {
             free_parsed_part(parsed);
             free_parse_command(parse_command);
+            if (fd > 0)
+                close(fd);
+            dup2(output, STDOUT_FILENO);
+            close(output);
+
             return -1;
         }
         else if (process == 0)
@@ -86,8 +113,6 @@ int main()
             if (strcmp(parse_command[0], "quit") == 0
                     || strcmp(parse_command[0], "exit") == 0)
             {
-                //free_parsed_part(parsed);
-                //free_parse_command(parse_command);
                 _exit(EXIT_FAILURE);
             }
 
@@ -113,8 +138,6 @@ int main()
                 write(STDOUT_FILENO, "Invalid command\n", 16);
             }
 
-            //free(parse_command);
-
             _exit(0);
         }
 
@@ -124,19 +147,18 @@ int main()
             wait(&status);
             free_parsed_part(parsed);
             free_parse_command(parse_command);
-
+            if (fd > 0)
+                close(fd);
+            dup2(output, STDOUT_FILENO);
+            close(output);
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) == EXIT_FAILURE)
                     return 1;
             }
         }
-            }
-
-    //free(parse_command);
+    }
 
     return 0;
 
-
 }
-
