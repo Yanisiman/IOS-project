@@ -63,7 +63,10 @@ void listdir(char *pwd, struct other others, struct flags flag)
 void ls(int argc, char** argv)
 {
     if (argc < 1)
+    {
         write(STDOUT_FILENO, "An error occured\n", 17);
+        return;
+    }
 
     struct flags flag = {0, 0, 0};
     struct other others = {2, 0};
@@ -91,6 +94,7 @@ void ls(int argc, char** argv)
                 write(STDOUT_FILENO, "Error: option ", 14);
                 write(STDOUT_FILENO, opt, 1);
                 write(STDOUT_FILENO, " doesn't exit\n", 14);
+                return;
             }
         }
         i++;

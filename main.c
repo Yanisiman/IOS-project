@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <err.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 
@@ -16,60 +17,37 @@
 #include "commands/man/man.h"
 #include "commands/rm/rm.h"
 #include "commands/mv/mv.h"
-
-
+#include "commands/echo/echo.h"
+#include "commands/parser.h"
 
 #define BUFF_SIZE 512
 
-char** parse_input(char *buf)
-{
-    char **parse = calloc(8, sizeof(char *));
-    if (parse == NULL)
-        errx(EXIT_FAILURE, "Error trying to allocate memory for the parse_input");
-
-    int args = 0;
-    char *separator = " ";
-    char *parsed;
-
-    parsed = strtok(buf, separator);
-    while (parsed != NULL)
-    {
-        parse[args] = parsed;
-        args++;
-        parsed = strtok(NULL, separator);
-    }
-    parse[args] = NULL;
-    return parse;
-
-}
-
-void free_parser(char **parse)
-{
-    for (int i = 0; parse[i]; i++)
-        free(parse[i]);
-    free(parse);
-}
-
 int main()
 {
+    char arr[BUFF_SIZE] = { 0 };
+    char temp[BUFF_SIZE] = { 0 };
+    char **parse_command; //= malloc(sizeof(char *));
 
-    char arr[256];
-    char **parse_command;
-
-    char shell[2] = {'$', ' '};
+    char shell[1] = {'$'};
 
     ssize_t w;
     ssize_t r = 1;
 
     int status;
 
+    char* path = getcwd(temp, BUFF_SIZE);
+
     char *first_cd[2] = {"cd", "./Home"};
-    if (cd(2, first_cd) == -1)
+    if (cd(2, first_cd, &path) == -1)
         errx(EXIT_FAILURE, "Error trying to cd to Home folder");
 
     while(r != 0)
     {
-        w = write(STDOUT_FILENO, shell, 2);
+        //write(STDOUT_FILENO, "\033[0;41m",7);
+        w = write(STDOUT_FILENO, shell, 1);
+        //write(STDOUT_FILENO, "\033[0m", 4);
+        write(STDOUT_FILENO, " ", 1);
+
         if (w == -1)
             errx(EXIT_FAILURE, "Error while writing");
 
@@ -81,33 +59,63 @@ int main()
         int i = 0;
         for (; buf[i] != '\0'; i++)
             continue;
-        buf[i-1] = ' ';	
-        parse_command = parse_input(buf);
+        buf[i-1] = ' ';
+        char *sep_redirection = ">";
+        char *sep_args = " ";
+        struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
+        parse_command = parse_part_to_arg(parsed->buf, sep_args);
 
-        int argc = 0;
-        for (; parse_command[argc]; argc++)
-            continue;
+        struct parsed_part *temp_parse = parsed;
+        struct parsed_part *prev;
+        while(temp_parse->buf)
+        {
+            prev = temp_parse;
+            temp_parse = temp_parse->next;
+        }
+
+        int argc = parsed->argc;
+        int fd = -1;
+        int output = dup(STDOUT_FILENO);
+        if (parsed->next->buf)
+        {
+            char* redirect = prev->args->value;
+            fd = open(redirect, O_WRONLY | O_TRUNC | O_CREAT,0644);
+            if (fd < 0)
+                write(STDOUT_FILENO, "An error appeared\n", 18);
+            else
+                dup2(fd, STDOUT_FILENO);
+        }
 
         if (strcmp(parse_command[0], "cd") == 0)
         {
-            cd(argc, parse_command);
-            free(parse_command);
+            cd(argc, parse_command, &path);
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
+            if (fd > 0)
+                close(fd);
             continue;
         }
 
         pid_t process = fork();
 
         if (process == -1)
-            return -1;
+        {
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
+            if (fd > 0)
+                close(fd);
+            dup2(output, STDOUT_FILENO);
+            close(output);
 
-        if (process == 0)
+            return -1;
+        }
+        else if (process == 0)
         {
             //printf("%d\n", getpid());
 
             if (strcmp(parse_command[0], "quit") == 0
                     || strcmp(parse_command[0], "exit") == 0)
             {
-                free(parse_command);
                 _exit(EXIT_FAILURE);
             }
 
@@ -122,17 +130,18 @@ int main()
             else if (strcmp(parse_command[0], "help") == 0)
                 help();
             else if (strcmp(parse_command[0], "man") == 0)
-                man(argc, parse_command);
+                man(argc, parse_command, temp);
             else if (strcmp(parse_command[0], "rm") == 0)
                 rm(parse_command);
            else if (strcmp(parse_command[0], "mv") == 0)
                 mv(argc, parse_command);
+            else if (strcmp(parse_command[0], "echo") == 0)
+                echo(argc, parse_command);
             else
             {
                 execvp(parse_command[0], parse_command);
+                write(STDOUT_FILENO, "Invalid command\n", 16);
             }
-
-            free(parse_command);
 
             _exit(0);
         }
@@ -141,6 +150,12 @@ int main()
         {
             //printf("%d\n", getpid());
             wait(&status);
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
+            if (fd > 0)
+                close(fd);
+            dup2(output, STDOUT_FILENO);
+            close(output);
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) == EXIT_FAILURE)
@@ -149,10 +164,6 @@ int main()
         }
     }
 
-    free(parse_command);
-
     return 0;
 
-
 }
-

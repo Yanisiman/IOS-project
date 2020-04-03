@@ -1,8 +1,8 @@
 CPPFLAGS = -MMD
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g #-fsanitize=address
+CC = gcc -fsanitize=address
+CFLAGS = -g -Wall -Wextra -Werror
 
-SRC = main.c commands/pwd/pwd.c commands/ls/ls.c commands/cd/cd.c commands/less/less.c commands/help/help.c commands/man/man.c commands/rm/rm.c commands/mv/mv.c
+SRC = main.c commands/pwd/pwd.c commands/ls/ls.c commands/cd/cd.c commands/less/less.c commands/help/help.c commands/man/man.c commands/rm/rm.c commands/echo/echo.c commands/mv/mv.c commands/parser.c
 
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}

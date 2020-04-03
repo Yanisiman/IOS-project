@@ -1,3 +1,8 @@
-void man_command(char* command, int n);
+#ifndef MAN_H
+#define MAN_H
 
-void man(int argc, char** argv);
+void man_command(char* path, char* command, int n);
+
+void man(int argc, char** argv, char* path);
+
+#endif
