@@ -25,10 +25,10 @@ void free_parsed_arg(struct parsed_arg *parse);
 
 void free_parse_command(char **parse);
 
-struct parsed_part *parse_all_input(char *buf);
+struct parsed_part *parse_all_input(char *buf, char *separator);
 
-void parse_args(char *buf, int *argc, struct parsed_arg *args);
+void parse_args(char *buf, int *argc, struct parsed_arg *args, char *separator);
 
-char** parse_part_to_arg(char *buf);
+char** parse_part_to_arg(char *buf, char *separator);
 
 #endif

@@ -1,6 +1,6 @@
 CPPFLAGS = -MMD
-CC = gcc
-CFLAGS = -g -Wall -Wextra #-Werror #-fsanitize=address
+CC = gcc -fsanitize=address
+CFLAGS = -g -Wall -Wextra -Werror
 
 SRC = main.c commands/pwd/pwd.c commands/ls/ls.c commands/cd/cd.c commands/less/less.c commands/help/help.c commands/man/man.c commands/rm/rm.c commands/echo/echo.c commands/parser.c
 

@@ -56,22 +56,18 @@ int main()
         for (; buf[i] != '\0'; i++)
             continue;
         buf[i-1] = ' ';
-        struct parsed_part *parsed = parse_all_input(buf);
-        parse_command = parse_part_to_arg(parsed->buf);
+        char *sep_redirection = ">";
+        char *sep_args = " ";
+        struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
+        parse_command = parse_part_to_arg(parsed->buf, sep_args);
 
-        /*
-        int argc = 0;
-        for (; parse_command[argc]; argc++)
-        {
-            continue;
-        }
-        */
         int argc = parsed->argc;
 
         if (strcmp(parse_command[0], "cd") == 0)
         {
             cd(argc, parse_command, &path);
-            free(parse_command);
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
             continue;
         }
 
@@ -79,7 +75,8 @@ int main()
 
         if (process == -1)
         {
-            free(parse_command);
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
             return -1;
         }
         else if (process == 0)
@@ -89,7 +86,8 @@ int main()
             if (strcmp(parse_command[0], "quit") == 0
                     || strcmp(parse_command[0], "exit") == 0)
             {
-                free(parse_command);
+                //free_parsed_part(parsed);
+                //free_parse_command(parse_command);
                 _exit(EXIT_FAILURE);
             }
 
@@ -124,17 +122,18 @@ int main()
         {
             //printf("%d\n", getpid());
             wait(&status);
+            free_parsed_part(parsed);
+            free_parse_command(parse_command);
+
             if (WIFEXITED(status))
             {
                 if (WEXITSTATUS(status) == EXIT_FAILURE)
                     return 1;
             }
         }
+            }
 
-        free(parse_command);
-    }
-
-    free(parse_command);
+    //free(parse_command);
 
     return 0;
 
