@@ -42,7 +42,7 @@ int perform_rm(char *argv[]){
     }
 
     if(a<0){
-        write(STDOUT_FILENO, "Error occured doing rm command\n", 31);
+        write(STDERR_FILENO, "Error occured doing rm command\n", 31);
         return -1;
     }
     return 0;

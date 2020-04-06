@@ -17,9 +17,9 @@ void listdir(char *pwd, struct other others, struct flags flag)
     ssize_t k_pwd = strlen(pwd);
 
     if (!(dir = opendir(pwd))){
-        write(STDOUT_FILENO, "Error: can't open the file or directory: ", 41);
-        write(STDOUT_FILENO, pwd, k_pwd);
-        write(STDOUT_FILENO, "\n", 1);
+        write(STDERR_FILENO, "Error: can't open the file or directory: ", 41);
+        write(STDERR_FILENO, pwd, k_pwd);
+        write(STDERR_FILENO, "\n", 1);
         return;
     }
 
@@ -63,7 +63,10 @@ void listdir(char *pwd, struct other others, struct flags flag)
 void ls(int argc, char** argv)
 {
     if (argc < 1)
-        write(STDOUT_FILENO, "An error occured\n", 17);
+    {
+        write(STDERR_FILENO, "An error occured\n", 17);
+        return;
+    }
 
     struct flags flag = {0, 0, 0};
     struct other others = {2, 0};
@@ -88,9 +91,10 @@ void ls(int argc, char** argv)
             else
             {
                 char opt[1] = {argv[1][j]};
-                write(STDOUT_FILENO, "Error: option ", 14);
-                write(STDOUT_FILENO, opt, 1);
-                write(STDOUT_FILENO, " doesn't exit\n", 14);
+                write(STDERR_FILENO, "Error: option ", 14);
+                write(STDERR_FILENO, opt, 1);
+                write(STDERR_FILENO, " doesn't exit\n", 14);
+                return;
             }
         }
         i++;

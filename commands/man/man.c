@@ -4,10 +4,10 @@
 #include <string.h>
 #include <fcntl.h>
 
-void man_command(char* command, int n)
+void man_command(char* commands_path, char* command, int n)
 {
     char path[512] = { 0 };
-    sprintf(path, "commands/%s/man", command);
+    sprintf(path, "%s/commands/%s/man", commands_path, command);
     int fd = open(path, O_RDONLY);
     if (fd > 0)
     {
@@ -23,23 +23,26 @@ void man_command(char* command, int n)
     }
     else
     {
-        write(STDOUT_FILENO, "Error: can't open find the command: ", 36);
-        write(STDOUT_FILENO, command, n);
-        write(STDOUT_FILENO, "\n", 1);
+        write(STDERR_FILENO, "Error: can't open man for the command: ", 39);
+        write(STDERR_FILENO, command, n);
+        write(STDERR_FILENO, "\n", 1);
     }
 
     return;
 }
 
-void man(int argc, char** argv)
+void man(int argc, char** argv, char* path)
 {
     if (argc < 1)
     {
-        write(STDOUT_FILENO, "Error", 5);
+        write(STDERR_FILENO, "Error with the man command", 26);
         return;
     }
 
-    int k = strlen(argv[1]);
-    man_command(argv[1], k);
+    for (int i = 1; i < argc; i++)
+    {
+        int k = strlen(argv[i]);
+        man_command(path, argv[i], k);
+    }
 
 }
