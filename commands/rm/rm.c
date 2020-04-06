@@ -123,7 +123,7 @@ int rm(char *argv[]){
 		write(STDOUT_FILENO, "Command 'rm' not found in this room\n",36);
 	}
 	} else {
-		write(STDOUT_FILENO, "Wrong item name given.\n",25);
+		write(STDOUT_FILENO, "Wrong item name given.\n",23);
 	}
 	return 0;
 
