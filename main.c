@@ -20,6 +20,7 @@
 #include "commands/mv/mv.h"
 #include "commands/echo/echo.h"
 #include "commands/cat/cat.h"
+#include "commands/cp/cp.h"
 #include "commands/parser/parser.h"
 
 #define BUFF_SIZE 512
@@ -53,6 +54,8 @@ void child_process(char **parse_command, int argc, char* temp)
         echo(argc, parse_command);
     else if (strcmp(parse_command[0], "cat") == 0)
         cat(argc, parse_command);
+    else if (strcmp(parse_command[0], "cp") == 0)
+        cp(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
@@ -182,9 +185,8 @@ int main_()
 
 }
 
-void* worker(void *arg_)
+void worker(int fd)
 {
-    int fd = (int) ((long)arg_);
     int save_out = dup(STDOUT_FILENO);
     int save_in = dup(STDIN_FILENO);
     int save_err = dup(STDERR_FILENO);
@@ -203,7 +205,6 @@ void* worker(void *arg_)
     close(save_err);
     close(fd);
 
-    pthread_exit(NULL);
 }
 
 int main()
@@ -244,6 +245,7 @@ int main()
         err(EXIT_FAILURE, "Couldn't connect");
     if (listen(cnx, 5) == -1)
         err(EXIT_FAILURE, "Error listening");
+
     int fd;
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(struct sockaddr_in));
@@ -256,13 +258,6 @@ int main()
         if (fd == -1)
             err(EXIT_FAILURE, "Error with accept");
 
-        /*
-           pthread_t thread;
-           int error = pthread_create(&thread, NULL, worker, (void*) ((long)fd));
-           if (error != 0)
-           err(EXIT_FAILURE, "Creating thread failed");
-         */
-
         pid_t process = fork();
         if (process == -1)
             err(EXIT_FAILURE, "Error with the fork()");
@@ -271,7 +266,7 @@ int main()
             close(cnx);
             printf("New connection (pid = %i)\n", getpid());
             fflush(stdout);
-            worker((void*) ((long) fd));
+            worker(fd);
 
             signal(SIGCHLD, SIG_IGN);
             close(fd);
