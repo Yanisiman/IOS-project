@@ -3,7 +3,7 @@ CC = gcc -fsanitize=address
 CFLAGS = -g -Wall -Wextra -Werror -pthread
 
 
-SRC = main.c commands/pwd/pwd.c commands/ls/ls.c commands/cd/cd.c commands/less/less.c commands/help/help.c commands/man/man.c commands/rm/rm.c commands/echo/echo.c commands/mv/mv.c commands/cat/cat.c commands/cp/cp.c commands/parser/parser.c commands/touch/touch.c
+SRC = main.c commands/pwd/pwd.c commands/ls/ls.c commands/cd/cd.c commands/less/less.c commands/help/help.c commands/man/man.c commands/rm/rm.c commands/echo/echo.c commands/mv/mv.c commands/cat/cat.c commands/cp/cp.c commands/parser/parser.c commands/touch/touch.c commands/makedir/makedir.c
 
 
 OBJ = ${SRC:.c=.o}
