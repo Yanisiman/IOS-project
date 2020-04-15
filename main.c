@@ -22,6 +22,8 @@
 #include "commands/cat/cat.h"
 #include "commands/cp/cp.h"
 #include "commands/parser/parser.h"
+#include "commands/touch/touch.h"
+
 
 #define BUFF_SIZE 512
 
@@ -56,6 +58,8 @@ void child_process(char **parse_command, int argc, char* temp)
         cat(argc, parse_command);
     else if (strcmp(parse_command[0], "cp") == 0)
         cp(argc, parse_command);
+    else if (strcmp(parse_command[0], "touch") == 0)
+        touch(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
