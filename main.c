@@ -21,6 +21,7 @@
 #include "commands/echo/echo.h"
 #include "commands/cat/cat.h"
 #include "commands/cp/cp.h"
+#include "commands/chmod/chmod.h"
 #include "commands/parser/parser.h"
 #include "commands/touch/touch.h"
 #include "commands/makedir/makedir.h"
@@ -58,6 +59,8 @@ void child_process(char **parse_command, int argc, char* temp)
         cat(argc, parse_command);
     else if (strcmp(parse_command[0], "cp") == 0)
         cp(argc, parse_command);
+    else if (strcmp(parse_command[0], "chmod") == 0)
+        chmod_command(argc, parse_command);
     else if (strcmp(parse_command[0], "touch") == 0)
         touch(argc, parse_command);
     else if (strcmp(parse_command[0], "makedir") == 0)
