@@ -1,0 +1,16 @@
+NAME:
+	touch - change file timestamps
+SYNOPSIS:
+	touch [FILE]...
+ 
+DESCRIPTION:
+	Update the access and modification times and each FILE to the current time. A FILE argument that does not exist is created empty.
+
+SEE ALSO:
+   	less(1), ls(1), echo(1), mv(1), cat(1)
+ 
+REPORTING BUGS:
+   	Write down here error that you have detected in your program and you can not correct. For example if you can not guarantee the answer when the argument is a number.
+ 
+AUTHORS:
+	Written by Jon (not finished yet) 
