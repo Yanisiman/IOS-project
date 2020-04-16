@@ -16,24 +16,29 @@
 int makedir(int argc, char **argv){
 
 
-       if (argc==1){
-            write(STDOUT_FILENO, "Error: Insert the name of the directory\n", 40);           
-    }else if(argc==2){
-
-    int fd= mkdir(argv[1], 0777);
-    
-
-   if (fd ==-1) 
-    { 
-        write(STDOUT_FILENO, "Error: The directory already exists\n", 36);               
+    if (argc==1)
+    {
+        write(STDOUT_FILENO, "Error: Insert the name of the directory\n", 40);
     }
-   if (fd ==0) {
-        write(STDOUT_FILENO, "Directory created successfully\n", 31);               
+    else if(argc==2)
+    {
+
+        int fd= mkdir(argv[1], 0777);
+
+
+        if (fd ==-1) 
+        { 
+            write(STDOUT_FILENO, "Error: The directory already exists\n", 36);
+        }
+        if (fd ==0) {
+            write(STDOUT_FILENO, "Directory created successfully\n", 31);
+        }
+
+
     }
-
-
-}else{
-            write(STDOUT_FILENO, "Error: Too many arguments\n", 26);               
-}
-return 0;
+    else
+    {
+        write(STDOUT_FILENO, "Error: Too many arguments\n", 26);
+    }
+    return 0;
 }

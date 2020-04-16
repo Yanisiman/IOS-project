@@ -7,18 +7,18 @@
 
 int touch (int argc,char **argv)
 {
- if(argc>0){
+    if(argc>0){
 
- mode_t mode= S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+        mode_t mode= S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
- int file=open(argv[1],O_RDONLY | O_CREAT ,mode);
+        int file=open(argv[1],O_RDONLY | O_CREAT ,mode);
 
-  if(file < 0){
-     printf("Error occured doing touch command\n");
-     return -1;
+        if(file < 0){
+            printf("Error occured doing touch command\n");
+            return -1;
+        }
+        close(file);
+        return 0;
     }
-close(file);
-return 0;
-}
-return -1;
+    return -1;
 }
