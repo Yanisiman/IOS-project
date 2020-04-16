@@ -1,9 +1,4 @@
-Creating new files: touch command
 Searching file's content : grep command
-Reading manual file of a command
-Finding help : help command (needs some changes -> read the file of the command in the commands folder)
-Copy a file: cp command
-Read the content of a file: cat command (even if it's not the main purpose of the command)
 
 Need to use these system calls:
 link() -> add links to file
@@ -13,6 +8,6 @@ lseek()
 Need to use pipes for inter process communication: (probably when we will handle redirection like : echo Hello > testFile)
 Need of error control : handle more errors and bad inputs from the user
 
-Optional work to improve:
-Implement a server where the players could be the clients and could be playing simultaneously.
 
+PROBLEMS TO RESOLVE:
+Copy a file: cp command
