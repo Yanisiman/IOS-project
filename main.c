@@ -22,9 +22,11 @@
 #include "commands/cat/cat.h"
 #include "commands/cp/cp.h"
 #include "commands/chmod/chmod.h"
-#include "commands/parser/parser.h"
 #include "commands/touch/touch.h"
 #include "commands/makedir/makedir.h"
+#include "commands/stat/stat.h"
+#include "commands/wc/wc.h"
+#include "commands/parser/parser.h"
 
 #define BUFF_SIZE 512
 
@@ -65,6 +67,10 @@ void child_process(char **parse_command, int argc, char* temp)
         touch(argc, parse_command);
     else if (strcmp(parse_command[0], "makedir") == 0)
         makedir(argc, parse_command);
+    else if (strcmp(parse_command[0], "stat") == 0)
+        stat_(argc, parse_command);
+    else if (strcmp(parse_command[0], "wc") == 0)
+        wc(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
