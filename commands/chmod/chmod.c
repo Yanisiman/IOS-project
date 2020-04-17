@@ -9,7 +9,9 @@
 
 mode_t perm(enum class_ c, enum permission p)
 {
-    return 1 << ((3-p) + (2-c)*3);
+    int temp = ((3-p) + (2-c)*3 - 1);
+
+    return (mode_t) (1 << temp);
 }
 
 mode_t mode_contains(mode_t mode, enum class_ c, enum permission p)
@@ -19,12 +21,12 @@ mode_t mode_contains(mode_t mode, enum class_ c, enum permission p)
 
 mode_t mode_add(mode_t mode, enum class_ c, enum permission p)
 {
-    return mode | perm(c, p);
+    return (mode_t) (mode | perm(c, p));
 }
 
 mode_t mode_rm(mode_t mode, enum class_ c, enum permission p)
 {
-    return mode & ~perm(c, p);
+    return (mode_t) (mode & ~perm(c, p));
 }
 
 
@@ -38,7 +40,7 @@ int chmod_command(int argc, char **argv)
 
     mode_t mode;
     char *parsed;
-    if (argv[1][0] >= 48 || argv[1][0] <= 57)
+    if (argv[1][0] >= 48 && argv[1][0] <= 57)
     {
         mode = strtol(argv[1], 0, 8);
         for (int i = 2; i < argc; i++)
@@ -57,22 +59,22 @@ int chmod_command(int argc, char **argv)
     {
         int k = 0;
         int j = 0;
-        char *class;
-        char *perms;
+        char *class = calloc(10, sizeof(char));
+        char *perms = calloc(10, sizeof(char));
         char *sep;
 
         while (!k)
         {
-            char *copy = calloc(strlen(argv[1]), sizeof(char));
+            char *copy = calloc(strlen(argv[1]) + 5, sizeof(char));
             strcpy(copy, argv[1]);
             sep = j == 0 ? "+" : "-" ;
             parsed = strtok(copy, sep);
             while (parsed)
             {
                 if (k == 0)
-                    class = parsed;
+                    strcpy(class, parsed);
                 else
-                    perms = parsed;
+                    strcpy(perms, parsed);
                 k++;
                 parsed = strtok(NULL, sep);
             }
@@ -85,6 +87,8 @@ int chmod_command(int argc, char **argv)
         int m = strlen(perms);
 
         struct stat stats;
+        enum class_ c;
+        enum permission p;
 
         for (int f = 2; f < argc; f++)
         {
@@ -98,7 +102,6 @@ int chmod_command(int argc, char **argv)
 
             for (int i = 0; i < n; i++)
             {
-                enum class_ c;
                 if (class[i] == 'u')
                     c = CLASS_OWNER;
                 else if (class[i] == 'g')
@@ -107,7 +110,6 @@ int chmod_command(int argc, char **argv)
                     c = CLASS_OTHER;
                 for (int h = 0; h < m; h++)
                 {
-                    enum permission p;
                     if (perms[h] == 'r')
                         p = PERMISSION_READ;
                     else if (perms[h] == 'w')
@@ -116,15 +118,42 @@ int chmod_command(int argc, char **argv)
                         p = PERMISSION_EXECUTE;
 
                     if (strcmp(sep,"+") == 0)
-                        mode_add(mode, c, p);
+                        mode = mode_add(mode, c, p);
                     else
-                        mode_rm(mode, c, p);
+                        mode = mode_rm(mode, c, p);
                 }
+            }
+
+            if (n == 0)
+            {
+                enum class_ r[3] = {CLASS_OWNER, CLASS_GROUP, CLASS_OTHER};
+                for (int l = 0; l < 3; l++)
+                {
+                    c = r[l];
+                    for (int h = 0; h < m; h++)
+                    {
+                        if (perms[h] == 'r')
+                            p = PERMISSION_READ;
+                        else if (perms[h] == 'w')
+                            p = PERMISSION_WRITE;
+                        else
+                            p = PERMISSION_EXECUTE;
+
+                        if (strcmp(sep,"+") == 0)
+                            mode = mode_add(mode, c, p);
+                        else
+                            mode = mode_rm(mode, c, p);
+                    }
+                }
+
             }
 
             if (chmod(argv[f], mode) < 0)
                 printf("Error: chmod for %s with %04o", argv[f], mode);
         }
+
+        free(class);
+        free(perms);
 
     }
 

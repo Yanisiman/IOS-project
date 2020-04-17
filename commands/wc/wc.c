@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 void count_lines(int* count, char* buf, ssize_t r)
@@ -45,10 +46,13 @@ void printwc(int count)
 int wc(int argc, char** argv)
 {
     if (argc < 2 || argc > 3 || (argc == 2 && argv[1][0] != '-'))
-        err(1, "Less or too many arguments given");
+    {
+        printf("Less or too many arguments given\n");
+        return EXIT_FAILURE;
+    }
     int fd = argc == 2 ? STDIN_FILENO : open(argv[2], O_RDONLY);
     if (fd == -1)
-        err(2, "Error with the input");
+        err(EXIT_FAILURE, "Error with the input");
 
     char buf[255] = { 0 };
     int count = 0;
