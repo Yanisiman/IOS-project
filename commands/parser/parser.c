@@ -24,6 +24,7 @@ struct parsed_part *new_parsed_part()
     parse->args = new_parsed_arg();
     parse->next = NULL;
     parse->argc = 0;
+    parse->append = 0;
     parse->buf = NULL;
 
     return parse;
@@ -68,9 +69,13 @@ struct parsed_part *parse_all_input(char *buf, char* separator)
 
     while(parsed != NULL)
     {
-        temp->buf = calloc(strlen(parsed) + 1, sizeof(char));
+        int k = strlen(parsed);
+        temp->buf = calloc(k + 1, sizeof(char));
         strcpy(temp->buf, parsed);
         temp->next = new_parsed_part();
+        char *p = parsed + k + 1;
+        if (p[0] == '>')
+            temp->next->append = 1;
         temp = temp->next;
         parsed = strtok(NULL, separator);
     }

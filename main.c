@@ -135,11 +135,22 @@ int main()
         }
 
         int fd = -1;
+        int flags;
+        int append = 0;
+
         int output = dup(STDOUT_FILENO);
         if (parsed->next->buf)
         {
+            if (prev->append == 1)
+            {
+                flags = O_WRONLY | O_CREAT;
+                append = 1;
+            }
+            else
+                flags = O_WRONLY | O_TRUNC | O_CREAT;
+
             char* redirect = prev->args->value;
-            fd = open(redirect, O_WRONLY | O_TRUNC | O_CREAT,0644);
+            fd = open(redirect, flags, 0644);
             if (fd < 0)
             {
                 write(STDOUT_FILENO, "An error appeared\n", 18);
@@ -148,7 +159,11 @@ int main()
                 continue;
             }
             else
+            {
+                if (append == 1)
+                    lseek(fd, 0, SEEK_END);
                 dup2(fd, STDOUT_FILENO);
+            }
         }
 
         if (strcmp(parse_command[0], "cd") == 0)

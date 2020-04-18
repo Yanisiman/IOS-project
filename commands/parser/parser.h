@@ -10,6 +10,7 @@ struct parsed_arg
 struct parsed_part
 {
     int argc;
+    int append;
     char *buf;
     struct parsed_arg *args;
     struct parsed_part *next;
