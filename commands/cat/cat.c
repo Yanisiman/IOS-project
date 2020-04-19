@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <err.h>
+#include <string.h>
 
 #define BUFFER_SIZE 512
 
@@ -10,13 +11,15 @@ void cat_(int fd_in, int fd_out)
 {
     char buff[BUFFER_SIZE] = { 0 };
     ssize_t r = read(fd_in, buff, BUFFER_SIZE);
-
+    int offset = 0;
+    int w;
     while (r != 0)
     {
         if (r == -1)
             err(EXIT_FAILURE, "Error while reading");
-        int offset = 0;
-        int w;
+        if (strstr(buff, "quit\n") != NULL)
+            return;
+        offset = 0;
         while (r > 0)
         {
             w = write(fd_out, buff + offset, r);
