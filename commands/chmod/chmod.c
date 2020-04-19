@@ -30,6 +30,26 @@ mode_t mode_rm(mode_t mode, enum class_ c, enum permission p)
 }
 
 
+void mode_update(mode_t *mode, char *sep, int m, char* perms, enum class_ c)
+{
+    enum permission p;
+    for (int h = 0; h < m; h++)
+    {
+        if (perms[h] == 'r')
+            p = PERMISSION_READ;
+        else if (perms[h] == 'w')
+            p = PERMISSION_WRITE;
+        else
+            p = PERMISSION_EXECUTE;
+
+        if (strcmp(sep,"+") == 0)
+            *mode = mode_add(*mode, c, p);
+        else
+            *mode = mode_rm(*mode, c, p);
+    }
+}
+
+
 int chmod_command(int argc, char **argv)
 {
     if (argc < 3)
@@ -39,17 +59,12 @@ int chmod_command(int argc, char **argv)
     }
 
     mode_t mode;
-    char *parsed;
     if (argv[1][0] >= 48 && argv[1][0] <= 57)
     {
         mode = strtol(argv[1], 0, 8);
         for (int i = 2; i < argc; i++)
         {
             char *file = argv[i];
-            /*
-               pthread_t thread;
-               int e = ptread_creat(&thread, NULL, permissions, file, mode);
-             */
             if (chmod(file, mode) < 0)
                 printf("Error: can't change the permissions for the file\n");
         }
@@ -57,30 +72,38 @@ int chmod_command(int argc, char **argv)
     }
     else
     {
-        int k = 0;
-        int j = 0;
+        int operator = 0;
         char *class = calloc(10, sizeof(char));
         char *perms = calloc(10, sizeof(char));
         char *sep;
 
-        while (!k)
+        char *option = argv[1];
+        int k = strlen(option);
+        for (int l = 0; l < k; l++)
+            operator = option[l] == '+' ? operator + 1 :
+                option[l] == '-' ? operator - 1 : operator;
+        if (operator == 0)
         {
-            char *copy = calloc(strlen(argv[1]) + 5, sizeof(char));
-            strcpy(copy, argv[1]);
-            sep = j == 0 ? "+" : "-" ;
-            parsed = strtok(copy, sep);
-            while (parsed)
-            {
-                if (k == 0)
-                    strcpy(class, parsed);
-                else
-                    strcpy(perms, parsed);
-                k++;
-                parsed = strtok(NULL, sep);
-            }
-            free(copy);
-            k = k == 2 || j == 1;
-            j++;
+            printf("Error");
+            return EXIT_FAILURE;
+        }
+        if (operator == 1)
+            sep = "+";
+        else
+            sep = "-";
+
+        char *copy = calloc(k + 5, sizeof(char));
+        strcpy(copy, option);
+        char *one = strtok(copy, sep);
+        char *two = strtok(NULL, sep);
+
+
+        if (two == NULL)
+            strcpy(perms, one);
+        else
+        {
+            strcpy(class, one);
+            strcpy(perms, two);
         }
 
         int n = strlen(class);
@@ -88,8 +111,6 @@ int chmod_command(int argc, char **argv)
 
         struct stat stats;
         enum class_ c;
-        enum permission p;
-
         for (int f = 2; f < argc; f++)
         {
             if (stat(argv[f], &stats) < 0)
@@ -108,20 +129,7 @@ int chmod_command(int argc, char **argv)
                     c = CLASS_GROUP;
                 else
                     c = CLASS_OTHER;
-                for (int h = 0; h < m; h++)
-                {
-                    if (perms[h] == 'r')
-                        p = PERMISSION_READ;
-                    else if (perms[h] == 'w')
-                        p = PERMISSION_WRITE;
-                    else
-                        p = PERMISSION_EXECUTE;
-
-                    if (strcmp(sep,"+") == 0)
-                        mode = mode_add(mode, c, p);
-                    else
-                        mode = mode_rm(mode, c, p);
-                }
+                mode_update(&mode, sep, m, perms, c);
             }
 
             if (n == 0)
@@ -130,22 +138,8 @@ int chmod_command(int argc, char **argv)
                 for (int l = 0; l < 3; l++)
                 {
                     c = r[l];
-                    for (int h = 0; h < m; h++)
-                    {
-                        if (perms[h] == 'r')
-                            p = PERMISSION_READ;
-                        else if (perms[h] == 'w')
-                            p = PERMISSION_WRITE;
-                        else
-                            p = PERMISSION_EXECUTE;
-
-                        if (strcmp(sep,"+") == 0)
-                            mode = mode_add(mode, c, p);
-                        else
-                            mode = mode_rm(mode, c, p);
-                    }
+                    mode_update(&mode, sep, m, perms, c);
                 }
-
             }
 
             if (chmod(argv[f], mode) < 0)

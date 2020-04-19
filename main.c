@@ -84,7 +84,7 @@ void child_process(char **parse_command, int argc, char* temp)
 }
 
 
-int main()
+int main_()
 {
     char temp[BUFF_SIZE] = { 0 };
     char **parse_command;
@@ -227,7 +227,7 @@ void worker(int fd)
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDERR_FILENO);
 
-    main();
+    main_();
 
     dup2(save_out, STDOUT_FILENO);
     dup2(save_in, STDIN_FILENO);
@@ -240,7 +240,7 @@ void worker(int fd)
 
 }
 
-int main_()
+int main()
 {
     struct addrinfo hints;
     struct addrinfo *results;
