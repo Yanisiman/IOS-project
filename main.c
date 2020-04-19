@@ -27,6 +27,8 @@
 #include "commands/stat/stat.h"
 #include "commands/wc/wc.h"
 #include "commands/grep/grep.h"
+#include "commands/tail/tail.h"
+#include "commands/head/head.h"
 #include "commands/parser/parser.h"
 
 #define BUFF_SIZE 512
@@ -74,6 +76,10 @@ void child_process(char **parse_command, int argc, char* temp)
         wc(argc, parse_command);
     else if (strcmp(parse_command[0], "grep") == 0)
         grep(argc, parse_command);
+    else if (strcmp(parse_command[0], "tail") == 0)
+        tail(argc, parse_command);
+    else if (strcmp(parse_command[0], "head") == 0)
+        head(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
