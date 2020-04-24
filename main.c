@@ -29,9 +29,20 @@
 #include "commands/grep/grep.h"
 #include "commands/tail/tail.h"
 #include "commands/head/head.h"
+#include "commands/find/find.h"
 #include "commands/parser/parser.h"
 
 #define BUFF_SIZE 512
+
+struct thread
+{
+    pthread_t thread;
+    struct parsed_part *parsed;
+    char *path;
+    char *temp;
+    int ret;
+};
+
 
 void child_process(char **parse_command, int argc, char* temp)
 {
@@ -80,6 +91,8 @@ void child_process(char **parse_command, int argc, char* temp)
         tail(argc, parse_command);
     else if (strcmp(parse_command[0], "head") == 0)
         head(argc, parse_command);
+    else if (strcmp(parse_command[0], "find") == 0)
+        find(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
@@ -89,18 +102,82 @@ void child_process(char **parse_command, int argc, char* temp)
     _exit(0);
 }
 
+void* work(void *arg)
+{
+    struct thread *t = (struct thread*) arg;
+    char *path = t->path;
+    char *temp = t->temp;
+    char *buf = t->parsed->buf;
 
-int main_()
+    int output = 0;
+    int argc = 0;
+    int fd = -1;
+    int status;
+
+    struct parsed_part *parsed;
+    char **parse_command = parse_redirections(buf, &output, &parsed, &argc, &fd);
+    if (parse_command == NULL)
+        pthread_exit(t);
+
+    if (strcmp(parse_command[0], "cd") == 0)
+    {
+        cd(argc, parse_command, &path);
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        pthread_exit(t);
+    }
+
+    pid_t process = fork();
+
+    if (process == -1)
+    {
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        dup2(output, STDOUT_FILENO);
+        close(output);
+
+        pthread_exit(t);
+    }
+    else if (process == 0)
+    {
+        child_process(parse_command, argc, temp);
+    }
+
+    else 
+    {
+        wait(&status);
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        dup2(output, STDOUT_FILENO);
+        close(output);
+        if (WIFEXITED(status))
+        {
+            if (WEXITSTATUS(status) == EXIT_FAILURE)
+            {
+                t->ret = -1;
+                pthread_exit(t);
+            }
+        }
+    }
+    pthread_exit(t);
+}
+
+
+int main()
 {
     char temp[BUFF_SIZE] = { 0 };
-    char **parse_command;
-
     char shell[1] = {'$'};
 
     ssize_t w;
     ssize_t r = 1;
 
-    int status;
+    int rval = 0;
 
     char* path = getcwd(temp, BUFF_SIZE);
 
@@ -110,9 +187,7 @@ int main_()
 
     while(r != 0)
     {
-        //write(STDOUT_FILENO, "\033[0;41m",7);
         w = write(STDOUT_FILENO, shell, 1);
-        //write(STDOUT_FILENO, "\033[0m", 4);
         write(STDOUT_FILENO, " ", 1);
 
         if (w == -1)
@@ -128,96 +203,39 @@ int main_()
             continue;
         buf[i-1] = ' ';
 
-        char *sep_redirection = ">";
-        char *sep_args = " ";
-        int argc = 0;
+        struct parsed_part *parsed_and = parse_and(buf);
+        struct parsed_part *temp_and = parsed_and;
 
-        struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
-        parse_command = parse_part_to_arg(parsed, sep_args, &argc);
-
-        struct parsed_part *temp_parse = parsed;
-        struct parsed_part *prev;
-        while(temp_parse->buf)
+        struct thread *threads = calloc(parsed_and->parts, sizeof(struct thread));
+        int t = 0;
+        while (temp_and->buf)
         {
-            prev = temp_parse;
-            temp_parse = temp_parse->next;
+            threads[t].parsed = temp_and;
+            threads[t].path = path;
+            threads[t].temp = temp;
+            pthread_create(&(threads[t].thread), NULL, work, (void *) &threads[t]);
+            temp_and = temp_and->next;
+            t++;
         }
 
-        int fd = -1;
-        int flags;
-        int append = 0;
-
-        int output = dup(STDOUT_FILENO);
-        if (parsed->next->buf)
+        temp_and = parsed_and;
+        t = 0;
+        int exit = 0;
+        while(temp_and->buf)
         {
-            if (prev->append == 1)
-            {
-                flags = O_WRONLY | O_CREAT;
-                append = 1;
-            }
-            else
-                flags = O_WRONLY | O_TRUNC | O_CREAT;
-
-            char* redirect = prev->args->value;
-            fd = open(redirect, flags, 0644);
-            if (fd < 0)
-            {
-                write(STDOUT_FILENO, "An error appeared\n", 18);
-                free_parsed_part(parsed);
-                free_parse_command(parse_command);
-                continue;
-            }
-            else
-            {
-                if (append == 1)
-                    lseek(fd, 0, SEEK_END);
-                dup2(fd, STDOUT_FILENO);
-            }
+            pthread_join(threads[t].thread, (void **) &rval);
+            //exit = rval == -1 ? 1 : 0;
+            exit = threads[t].ret;
+            temp_and = temp_and->next;
+            t++;
         }
 
-        if (strcmp(parse_command[0], "cd") == 0)
-        {
-            cd(argc, parse_command, &path);
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            continue;
-        }
+        free(threads);
+        free_parsed_part(parsed_and);
 
-        pid_t process = fork();
+        if (exit)
+            break;
 
-        if (process == -1)
-        {
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            dup2(output, STDOUT_FILENO);
-            close(output);
-
-            return -1;
-        }
-        else if (process == 0)
-        {
-            child_process(parse_command, argc, temp);
-        }
-
-        else 
-        {
-            wait(&status);
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            dup2(output, STDOUT_FILENO);
-            close(output);
-            if (WIFEXITED(status))
-            {
-                if (WEXITSTATUS(status) == EXIT_FAILURE)
-                    return 1;
-            }
-        }
     }
 
     return 0;
@@ -233,7 +251,7 @@ void worker(int fd)
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDERR_FILENO);
 
-    main_();
+    main();
 
     dup2(save_out, STDOUT_FILENO);
     dup2(save_in, STDIN_FILENO);
@@ -246,7 +264,7 @@ void worker(int fd)
 
 }
 
-int main()
+int main_()
 {
     struct addrinfo hints;
     struct addrinfo *results;

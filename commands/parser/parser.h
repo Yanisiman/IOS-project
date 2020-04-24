@@ -9,6 +9,7 @@ struct parsed_arg
 
 struct parsed_part
 {
+    int parts;
     int argc;
     int append;
     char *buf;
@@ -32,4 +33,9 @@ void parse_args(char *buf, int *argc, struct parsed_arg *args, char *separator);
 
 char** parse_part_to_arg(struct parsed_part *p, char *separator, int *args);
 
+char **parse_redirections(char *buf, int *output, struct parsed_part **parsed, int *argc, int *fd);
+
+struct parsed_part *parse_pipes(char *buf);
+
+struct parsed_part *parse_and(char *buf);
 #endif
