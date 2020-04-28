@@ -30,6 +30,7 @@
 #include "commands/tail/tail.h"
 #include "commands/head/head.h"
 #include "commands/parser/parser.h"
+#include "commands/ln/ln.h"
 
 #define BUFF_SIZE 512
 
@@ -80,6 +81,8 @@ void child_process(char **parse_command, int argc, char* temp)
         tail(argc, parse_command);
     else if (strcmp(parse_command[0], "head") == 0)
         head(argc, parse_command);
+	else if (strcmp(parse_command[0], "ln") == 0)
+        ln(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);

@@ -1,0 +1,1 @@
+int ln(int argc, char* argv[]);
