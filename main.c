@@ -54,7 +54,7 @@ void child_process(char **parse_command, int argc, char* temp)
         echo(argc, parse_command);
     else if (strcmp(parse_command[0], "cat") == 0)
         cat(argc, parse_command);
-	else if (strcmp(parse_command[0], "mv") == 0)
+	else if (strcmp(parse_command[0], "ln") == 0)
         ln(argc, parse_command);
     else
     {

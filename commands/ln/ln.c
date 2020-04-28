@@ -69,5 +69,5 @@ int ln(int argc, char* argv[]){
 		}
 	}
 
-	
+	return 0;
 }
