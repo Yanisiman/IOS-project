@@ -21,6 +21,7 @@
 #include "commands/echo/echo.h"
 #include "commands/cat/cat.h"
 #include "commands/parser/parser.h"
+#include "commands/ln/ln.h"
 
 #define BUFF_SIZE 512
 
@@ -53,6 +54,8 @@ void child_process(char **parse_command, int argc, char* temp)
         echo(argc, parse_command);
     else if (strcmp(parse_command[0], "cat") == 0)
         cat(argc, parse_command);
+	else if (strcmp(parse_command[0], "mv") == 0)
+        ln(argc, parse_command);
     else
     {
         execvp(parse_command[0], parse_command);
