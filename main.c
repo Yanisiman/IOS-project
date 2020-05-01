@@ -43,6 +43,8 @@ struct thread
     int ret;
 };
 
+enum PIPES {READ, WRITE};
+
 
 void child_process(char **parse_command, int argc, char* temp)
 {
@@ -102,6 +104,27 @@ void child_process(char **parse_command, int argc, char* temp)
     _exit(0);
 }
 
+int exec_parts(char *buf, char *path, char *temp);
+
+void redirect(int oldfd, int newfd)
+{
+    if (oldfd != newfd)
+    {
+        if (dup2(oldfd, newfd) != -1)
+            close(oldfd);
+        else
+            err(EXIT_FAILURE, "Error with dup2");
+    }
+}
+
+int run(char *buf, char *path, char *temp, int in, int out)
+{
+    redirect(in, STDIN_FILENO);
+    redirect(out, STDOUT_FILENO);
+
+    return exec_parts(buf, path, temp);
+}
+
 void* work(void *arg)
 {
     struct thread *t = (struct thread*) arg;
@@ -109,6 +132,50 @@ void* work(void *arg)
     char *temp = t->temp;
     char *buf = t->parsed->buf;
 
+    struct parsed_part *pipes = parse_pipes(buf);
+
+    int num = pipes->parts;
+    if (num < 2)
+    {
+        int err = exec_parts(pipes->buf, path, temp);
+        if (err == -1)
+            t->ret = 1;
+        free_parsed_part(pipes);
+        pthread_exit(t);
+    }
+    struct parsed_part *tp = pipes;
+    int i = 0, in = STDIN_FILENO;
+    for (; i < num - 1; i++)
+    {
+        int fd[2];
+        pid_t pid;
+
+        if (pipe(fd) == -1)
+            err(EXIT_FAILURE, "Error with pipe");
+        pid = fork();
+        if (pid == -1)
+            err(EXIT_FAILURE, "Error with fork");
+        if (pid == 0)
+        {
+            close(fd[0]);
+            run(tp->buf, path, temp, in, fd[1]);
+        }
+        else
+        {
+            close(fd[1]);
+            close(in);
+            in = fd[0];
+            tp = tp->next;
+        }
+    }
+    run(tp->buf, path, temp, in, STDOUT_FILENO);
+
+    free_parsed_part(pipes);
+    pthread_exit(t);
+}
+
+int exec_parts(char *buf, char *path, char *temp)
+{
     int output = 0;
     int argc = 0;
     int fd = -1;
@@ -117,7 +184,7 @@ void* work(void *arg)
     struct parsed_part *parsed;
     char **parse_command = parse_redirections(buf, &output, &parsed, &argc, &fd);
     if (parse_command == NULL)
-        pthread_exit(t);
+        return 0;
 
     if (strcmp(parse_command[0], "cd") == 0)
     {
@@ -126,7 +193,7 @@ void* work(void *arg)
         free_parse_command(parse_command);
         if (fd > 0)
             close(fd);
-        pthread_exit(t);
+        return 0;
     }
 
     pid_t process = fork();
@@ -140,7 +207,7 @@ void* work(void *arg)
         dup2(output, STDOUT_FILENO);
         close(output);
 
-        pthread_exit(t);
+        return 0;
     }
     else if (process == 0)
     {
@@ -160,12 +227,11 @@ void* work(void *arg)
         {
             if (WEXITSTATUS(status) == EXIT_FAILURE)
             {
-                t->ret = -1;
-                pthread_exit(t);
+                return -1;
             }
         }
     }
-    pthread_exit(t);
+    return 0;
 }
 
 
@@ -224,8 +290,7 @@ int main()
         while(temp_and->buf)
         {
             pthread_join(threads[t].thread, (void **) &rval);
-            //exit = rval == -1 ? 1 : 0;
-            exit = threads[t].ret;
+            exit += threads[t].ret;
             temp_and = temp_and->next;
             t++;
         }
