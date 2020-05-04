@@ -128,7 +128,7 @@ int run(char *buf, char *path, char *temp, int in, int out)
     return exec_parts(buf, path, temp);
 }
 
-void* work(void *arg)
+int work(void *arg)
 {
     struct thread *t = (struct thread*) arg;
     char *path = t->path;
@@ -136,18 +136,24 @@ void* work(void *arg)
     char *buf = t->parsed->buf;
 
     struct parsed_part *pipes = parse_pipes(buf);
-
+    int quit = 0;
     int num = pipes->parts;
     if (num < 2)
     {
         int err = exec_parts(pipes->buf, path, temp);
         if (err == -1)
+        {
             t->ret = 1;
+            quit = 1;
+        }
         free_parsed_part(pipes);
-        pthread_exit(t);
+        return quit;
     }
     struct parsed_part *tp = pipes;
     int i = 0, in = STDIN_FILENO;
+    int save_out = dup(STDOUT_FILENO);
+    int save_in = dup(STDIN_FILENO);
+
     for (; i < num - 1; i++)
     {
         int fd[2];
@@ -171,10 +177,11 @@ void* work(void *arg)
             tp = tp->next;
         }
     }
-    run(tp->buf, path, temp, in, STDOUT_FILENO);
-
+    run(tp->buf, path, temp, in, save_out);
+    dup2(save_out, STDOUT_FILENO);
+    dup2(save_in, STDIN_FILENO);
     free_parsed_part(pipes);
-    pthread_exit(t);
+    return quit;
 }
 
 int exec_parts(char *buf, char *path, char *temp)
@@ -246,7 +253,7 @@ int main()
     ssize_t w;
     ssize_t r = 1;
 
-    int rval = 0;
+    //int rval = 0;
 
     char* path = getcwd(temp, BUFF_SIZE);
 
@@ -272,35 +279,49 @@ int main()
             continue;
         buf[i-1] = ' ';
 
-        struct parsed_part *parsed_and = parse_and(buf);
-        struct parsed_part *temp_and = parsed_and;
+        struct parsed_part *parsed_instructions = parse_all_input(buf, ";");
+        struct parsed_part *tmp = parsed_instructions;
 
-        struct thread *threads = calloc(parsed_and->parts, sizeof(struct thread));
-        int t = 0;
-        while (temp_and->buf)
-        {
-            threads[t].parsed = temp_and;
-            threads[t].path = path;
-            threads[t].temp = temp;
-            pthread_create(&(threads[t].thread), NULL, work, (void *) &threads[t]);
-            temp_and = temp_and->next;
-            t++;
-        }
-
-        temp_and = parsed_and;
-        t = 0;
         int exit = 0;
-        while(temp_and->buf)
+        while (tmp->buf)
         {
-            pthread_join(threads[t].thread, (void **) &rval);
-            exit += threads[t].ret;
-            temp_and = temp_and->next;
-            t++;
+
+            struct parsed_part *parsed_and = parse_and(tmp->buf);
+            struct parsed_part *temp_and = parsed_and;
+
+            struct thread *threads = calloc(parsed_and->parts, sizeof(struct thread));
+            int t = 0;
+            while (temp_and->buf)
+            {
+                threads[t].parsed = temp_and;
+                threads[t].path = path;
+                threads[t].temp = temp;
+                //pthread_create(&(threads[t].thread), NULL, work, (void *) &threads[t]);
+                exit += work((void*) &threads[t]);
+                temp_and = temp_and->next;
+                t++;
+            }
+
+            /*
+               temp_and = parsed_and;
+               t = 0;
+               while(temp_and->buf)
+               {
+               pthread_join(threads[t].thread, (void **) &rval);
+               exit += threads[t].ret;
+               temp_and = temp_and->next;
+               t++;
+               }
+             */
+
+            free_parsed_part(parsed_and);
+            free(threads);
+
+            if (exit)
+                break;
+            tmp = tmp->next;
         }
-
-        free(threads);
-        free_parsed_part(parsed_and);
-
+        free_parsed_part(parsed_instructions);
         if (exit)
             break;
 
