@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <err.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define BUFFER_SIZE 512
 
@@ -54,11 +56,20 @@ int cat(int argc, char **argv)
         {
             int fd = open(argv[i], O_RDONLY);
             if (fd == -1)
-                write(STDOUT_FILENO, "Error: can't find the file\n", 23); 
-            cat_(fd, STDOUT_FILENO);
-
-            close(fd);
-            write(STDOUT_FILENO, "\n", 1);
+                write(STDOUT_FILENO, "Error: can't find the file\n", 27);
+            else
+            {
+                struct stat stats;
+                if (fstat(fd, &stats) < 0)
+                    write(STDOUT_FILENO, "Error: can't find the file\n", 27);
+                else if (S_ISDIR(stats.st_mode))
+                    write(STDOUT_FILENO, "Error: the file is a directory\n", 31);
+                else
+                {
+                    cat_(fd, STDOUT_FILENO);
+                }
+                close(fd);
+            }
         }
     }
 
