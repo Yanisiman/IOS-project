@@ -3,5 +3,4 @@ Look at your surrounds with the command: ls (look at surroundings)
 Move to a new location with: cd [location] (choose destination)
 You can backtrack with the command: cd ..
 Interact with things in world with: less [item] (look at, examine, or speak to
-something)
-Go ahead. Explore. We hope you enjoy what you find.
+something). Go ahead. Explore. We hope you enjoy what you find.
