@@ -4,9 +4,19 @@
 #include <string.h>
 #include <fcntl.h> 
 #include <err.h>
-
 #define BUFFERSIZE 512
 
+int rmv(char *argv[]){
+
+    int a;
+    a = unlink(argv[1]);
+   
+    if(a<0){
+        write(STDOUT_FILENO, "Error occured doing rm command\n", 31);
+        return -1;
+    }
+    return 0;
+}
 int less(int argc, char *argv[])
 {
     if (argc < 2)
@@ -32,6 +42,11 @@ int less(int argc, char *argv[])
                 break;
             write(STDOUT_FILENO, message, desc);
         }
+		
+		if(strcmp(argv[1],"HurryingStudent") == 0){
+			
+			rmv(argv);
+		}
 
         close(filedesc);
     }
