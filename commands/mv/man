@@ -3,9 +3,20 @@ NAME:
 SYNOPSIS:
 	mv SOURCE DEST
 	mv SOURCE... DIRECTORY
+    mv [OPTION] SOURCE DEST
  
 DESCRIPTION:
-   	move SOURCE(s) to DIRECTORY or Rename SOURCE to DEST(the last one is not implemented because in terminus you can rename with mv)
+   	move SOURCE(s) to DIRECTORY or Rename SOURCE to DEST(the last one with the -r option)
+    only ONE option can be applied
+
+ -f: do not Promp before overwriting(this is done by default)
+
+ -i: Promp before overwrite
+
+ -n: Do not overwrite an existing file
+
+ -r: You can use it to rename a file
+ 
 
 SEE ALSO:
    	cp(1), rm(1), mkdir(1), touch(1), rename(2)
