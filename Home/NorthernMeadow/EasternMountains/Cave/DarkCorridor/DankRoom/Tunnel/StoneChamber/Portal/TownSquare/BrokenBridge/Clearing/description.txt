@@ -1,0 +1,5 @@
+There’s a small grassy clearing here, with a man sitting on a stone
+and sobbing. Behind him is a pile of rubble.
+(after solved) There’s a small grassy clearing here, with a man sitting on a stone and
+sobbing. Behind him is a small white house.
+
