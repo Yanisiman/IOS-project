@@ -195,6 +195,12 @@ int exec_parts(char *buf, char *path, char *temp)
     char **parse_command = parse_redirections(buf, &output, &parsed, &argc, &fd);
     if (parse_command == NULL)
         return 0;
+    if (parse_command[0] == NULL)
+    {
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        return 0;
+    }
 
     if (strcmp(parse_command[0], "cd") == 0)
     {
