@@ -14,11 +14,12 @@ int ln(int argc, char* argv[]){
 	char cwd[BUFFERSIZE] = { 0 };
 	
 	if (argc < 3){
-		perror("Not enough arguments given.");
-		exit(1);
+		write(STDOUT_FILENO, "Not enough arguments given.\n", 28);
+        return EXIT_FAILURE;
+		
 	}else if(argc > 4){
-		perror("Too many arugments given.");
-		exit(1);
+		write(STDOUT_FILENO, "Too many arugments given.\n",26);
+		return EXIT_FAILURE;
 	}else if(argc == 3){
 		i = 0; // filename position
 	}else{
@@ -27,29 +28,29 @@ int ln(int argc, char* argv[]){
 	
 	
 	if(argc == 4 && strcmp(argv[1],"-s") != 0){
-		perror("Only symbolic link option '-s' is implemented.");
-		exit(1);
+		write(STDOUT_FILENO, "Only symbolic link option '-s' is implemented.\n", 47);
+		return EXIT_FAILURE;
 	}
 	
 	if(access(argv[i+1],F_OK)){
-		perror("Given file name is not found.");
-		exit(1);
+		write(STDOUT_FILENO, "Given file name is not found.\n", 30);
+		return EXIT_FAILURE;
 	}
 	
 	if(!access(argv[i+2],F_OK)){
-		perror("Given file name already exists.");
-		exit(1);
+		write(STDOUT_FILENO, "Given file name already exists.\n", 32);
+		return EXIT_FAILURE;
 	}
 	
 	a = stat(argv[i+1],&s);
 	
 	if(a < 0){
-		perror("Unable to get stat information.");
-		exit(1);
+		write(STDOUT_FILENO, "Unable to get stat information.\n", 32);
+		return EXIT_FAILURE;
 	}else{
 		if(!S_ISREG(s.st_mode)){
-		  perror("Given file is not a regular file.");
-		  exit(1); 
+		  write(STDOUT_FILENO, "Given file is not a regular file.\n", 34);
+		  return EXIT_FAILURE;
 		}
 	}
 	
@@ -59,13 +60,13 @@ int ln(int argc, char* argv[]){
 	
 	if(argc == 3){
 		if(link(cwd,argv[i+2])<0){
-			perror("Unable to create a hard link");
-			exit(1);
+			write(STDOUT_FILENO,"Unable to create a hard link.\n",29);
+			return EXIT_FAILURE;
 		}
 	}else if(argc == 4){
 		if(symlink(cwd,argv[i+2])<0){
-			perror("Unable to create a symbolic link");
-			exit(1);
+			write(STDOUT_FILENO, "Unable to create a symbolic link.\n", 34);
+			return EXIT_FAILURE;
 		}
 	}
 
