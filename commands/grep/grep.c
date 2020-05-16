@@ -4,8 +4,41 @@
 #include <unistd.h>
 #include <err.h>
 #include <fcntl.h>
+#include <string.h>
 
 #define BUFF 512
+
+void read_from_in(char* pattern)
+{
+    char buffer[BUFF] = {0};
+    ssize_t r = read(STDIN_FILENO, buffer, BUFF);
+    int offset;
+    int w;
+    while (r != 0)
+    {
+        if (r == -1)
+            err(EXIT_FAILURE, "Error while reading input of grep");
+        if (strstr(buffer, "quit\n") != NULL)
+            return;
+        char *tmp = calloc(BUFF, sizeof(char));
+        strcpy(tmp, buffer);
+        if (strstr(tmp, pattern) != NULL)
+        {
+            offset = 0;
+            while (r > 0)
+            {
+                w = write(STDOUT_FILENO, buffer + offset, r);
+                if (w == -1)
+                    err(EXIT_FAILURE, "Error while writing for grep");
+                offset += w;
+                r -= w;
+            }
+        }
+        free(tmp);
+        memset(buffer, 0, BUFF);
+        r = read(STDIN_FILENO, buffer, BUFF);
+    }
+}
 
 char *read_to_string(int fd)
 {
@@ -114,39 +147,48 @@ char **find_pattern(char **lines, char *pattern, int *count, int k)
 
 int grep(int argc, char **argv)
 {
-    if (argc < 3)
+    if (argc < 2)
     {
         printf("Error: Arguments are missing\n");
         return EXIT_FAILURE;
     }
 
     char *pattern = argv[1];
-    int fd = open(argv[2], O_RDONLY);
-    if (fd < 0)
+    int fd;
+    if (argc == 2)
     {
-        printf("Error: can't find any file %s\n", argv[2]);
-        return EXIT_FAILURE;
+        read_from_in(pattern);
     }
-
-    char *file = read_to_string(fd);
-    int count = 0;
-    int k = 0;
-
-    char **lines = string_to_lines(file, &k);
-
-    char **results = find_pattern(lines, pattern, &count, k);
-    for (int i = 0; i < count; i++)
+    else
     {
-        printf("%s\n", results[i]);
-    }
+        fd = open(argv[2], O_RDONLY);
+        if (fd < 0)
+        {
+            printf("Error: can't find any file %s\n", argv[2]);
+            return EXIT_FAILURE;
+        }
 
-    free(file);
-    for (int i = 0; i < k; i++)
-        free(lines[i]);
-    free(lines);
-    for (int i = 0; i < count; i++)
-        free(results[i]);
-    free(results);
+
+        char *file = read_to_string(fd);
+        int count = 0;
+        int k = 0;
+
+        char **lines = string_to_lines(file, &k);
+
+        char **results = find_pattern(lines, pattern, &count, k);
+        for (int i = 0; i < count; i++)
+        {
+            printf("%s\n", results[i]);
+        }
+
+        free(file);
+        for (int i = 0; i < k; i++)
+            free(lines[i]);
+        free(lines);
+        for (int i = 0; i < count; i++)
+            free(results[i]);
+        free(results);
+    }
 
     return EXIT_SUCCESS;
 }
