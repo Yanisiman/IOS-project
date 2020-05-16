@@ -69,7 +69,7 @@ void child_process(char **parse_command, int argc, char* temp)
     else if (strcmp(parse_command[0], "man") == 0)
         man(argc, parse_command, temp);
     else if (strcmp(parse_command[0], "rm") == 0)
-        rm(parse_command);
+        rm(argc, parse_command);
     else if (strcmp(parse_command[0], "mv") == 0)
         mv(argc, parse_command);
     else if (strcmp(parse_command[0], "echo") == 0)
