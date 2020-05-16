@@ -161,10 +161,12 @@ int grep(int argc, char **argv)
     }
     else
     {
-        fd = open(argv[2], O_RDONLY);
+        for (int j = 2; j < argc; j++)
+        {
+        fd = open(argv[j], O_RDONLY);
         if (fd < 0)
         {
-            printf("Error: can't find any file %s\n", argv[2]);
+            printf("Error: can't find any file %s\n", argv[j]);
             return EXIT_FAILURE;
         }
 
@@ -178,7 +180,7 @@ int grep(int argc, char **argv)
         char **results = find_pattern(lines, pattern, &count, k);
         for (int i = 0; i < count; i++)
         {
-            printf("%s\n", results[i]);
+            printf("%s:%s\n", argv[j] ,results[i]);
         }
 
         free(file);
@@ -188,6 +190,7 @@ int grep(int argc, char **argv)
         for (int i = 0; i < count; i++)
             free(results[i]);
         free(results);
+        }
     }
 
     return EXIT_SUCCESS;
