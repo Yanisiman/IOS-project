@@ -51,8 +51,7 @@ int tail(int argc, char **argv)
     }
 
     int n = 10;
-    char *f = argv[1];
-
+    int f = 1;
     if (strcmp(argv[1], "-n") == 0 && argc > 3)
     {
         n = atoi(argv[2]);
@@ -61,28 +60,34 @@ int tail(int argc, char **argv)
             printf("Error\n");
             return EXIT_FAILURE;
         }
-        f  = argv[3];
+        f = 3;
     }
-    int fd = open(f, O_RDONLY);
-    if (fd < 0)
+    for (int j = f; j < argc; j++)
     {
-        printf("Error: can't find any file %s\n", argv[1]);
-        return EXIT_FAILURE;
+        int fd = open(argv[j], O_RDONLY);
+        if (fd < 0)
+        {
+            printf("Error: can't find any file %s\n", argv[j]);
+            return EXIT_FAILURE;
+        }
+
+        char *file = read_to_string(fd);
+        int count = 0;
+        char **lines = string_to_last_lines(file, &count);
+        if (count < 10)
+            n = count;
+
+        printf("==> %s <==\n", argv[j]);
+        for (int i = count - n; i < count; i++)
+        {
+            printf("%s\n", lines[i]);
+        }
+        printf("\n");
+
+        free(file);
+        for (int i = 0; i < count; i++)
+            free(lines[i]);
+        free(lines);
     }
-
-    char *file = read_to_string(fd);
-    int count = 0;
-    char **lines = string_to_last_lines(file, &count);
-
-    for (int i = count - n; i < count; i++)
-    {
-        printf("%s\n", lines[i]);
-    }
-
-    free(file);
-    for (int i = 0; i < count; i++)
-        free(lines[i]);
-    free(lines);
-
     return EXIT_SUCCESS;
 }
