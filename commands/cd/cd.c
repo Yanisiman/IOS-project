@@ -20,6 +20,7 @@ int tellDescription()
             if (desc <= 0)
                 break;
             write(STDOUT_FILENO, message, desc);
+			write(STDOUT_FILENO, "\n", 1);
         }
         close(filedesc);
     }
@@ -28,15 +29,11 @@ int tellDescription()
 
 int cd(int argc, char *argv[], char** last_cd)
 {
-    if (argc < 1)
-    {
-        write(STDERR_FILENO, "An error occured\n", 17);
-        return -1;
-    }
+   
     if (argc > 2)
     {
-        write(STDERR_FILENO, "Error: cd: Too much arguments\n", 29);
-        return -1;
+        write(STDERR_FILENO, "Too many arguments are given.\n", 30);
+        return EXIT_FAILURE;
     }
 
     char s[BUFFERSIZE] = { 0 };
@@ -56,10 +53,10 @@ int cd(int argc, char *argv[], char** last_cd)
     if (a < 0)
     {
         ssize_t k = strlen(argv[1]);
-        write(STDERR_FILENO, "Error: can't find any folder named: ", 37);
+        write(STDERR_FILENO, "There is no room called ", 24);
         write(STDERR_FILENO, argv[1], k);
-        write(STDERR_FILENO, "\n", 1);
-        return -1;
+        write(STDERR_FILENO, ".\n", 2);
+        return EXIT_FAILURE;
     }
     strcpy(*last_cd, s);
     tellDescription();

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <err.h>
 #include <string.h>
+#include <fcntl.h>
 #include "parser.h"
 
 struct parsed_arg *new_parsed_arg()
@@ -25,6 +26,7 @@ struct parsed_part *new_parsed_part()
     parse->next = NULL;
     parse->argc = 0;
     parse->append = 0;
+    parse->parts = 0;
     parse->buf = NULL;
 
     return parse;
@@ -70,9 +72,10 @@ struct parsed_part *parse_all_input(char *buf, char* separator)
     while(parsed != NULL)
     {
         int k = strlen(parsed);
-        temp->buf = calloc(k + 1, sizeof(char));
+        temp->buf = calloc(k + 5, sizeof(char));
         strcpy(temp->buf, parsed);
         temp->next = new_parsed_part();
+        parse->parts += 1;
         char *p = parsed + k + 1;
         if (p[0] == '>')
             temp->next->append = 1;
@@ -156,4 +159,70 @@ char** parse_part_to_arg(struct parsed_part *p, char *separator, int *args)
     parse[*args] = NULL;
 
     return parse;
+}
+
+
+char **parse_redirections(char *buf, int *output, struct parsed_part **parsed, int *argc, int *fd)
+{
+    char *sep_redirection = ">";
+    char *sep_args = " ";
+
+    *parsed = parse_all_input(buf, sep_redirection);
+    char **parse_command = parse_part_to_arg(*parsed, sep_args, argc);
+
+    struct parsed_part *temp_parse = *parsed;
+    struct parsed_part *prev;
+    while(temp_parse->buf)
+    {
+        prev = temp_parse;
+        temp_parse = temp_parse->next;
+    }
+
+    int flags;
+    int append = 0;
+
+    *output = dup(STDOUT_FILENO);
+    if ((*parsed)->next->buf)
+    {
+        if (prev->append == 1)
+        {
+            flags = O_WRONLY | O_CREAT;
+            append = 1;
+        }
+        else
+            flags = O_WRONLY | O_TRUNC | O_CREAT;
+
+        char* redirect = prev->args->value;
+        *fd = open(redirect, flags, 0644);
+        if (*fd < 0)
+        {
+            write(STDOUT_FILENO, "An error appeared\n", 18);
+            free_parsed_part(*parsed);
+            free_parse_command(parse_command);
+            return NULL;
+        }
+        else
+        {
+            if (append == 1)
+                lseek(*fd, 0, SEEK_END);
+            dup2(*fd, STDOUT_FILENO);
+        }
+    }
+
+    return parse_command;
+
+}
+
+struct parsed_part *parse_pipes(char *buf)
+{
+    char *sep = "|";
+    struct parsed_part *parsed = parse_all_input(buf, sep);
+    return parsed;
+}
+
+struct parsed_part *parse_and(char *buf)
+{
+    char *sep = "&";
+    struct parsed_part *parsed = parse_all_input(buf, sep);
+    return parsed;
 }

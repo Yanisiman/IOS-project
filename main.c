@@ -29,10 +29,23 @@
 #include "commands/grep/grep.h"
 #include "commands/tail/tail.h"
 #include "commands/head/head.h"
+#include "commands/find/find.h"
 #include "commands/parser/parser.h"
 #include "commands/ln/ln.h"
 
 #define BUFF_SIZE 512
+
+struct thread
+{
+    pthread_t thread;
+    struct parsed_part *parsed;
+    char *path;
+    char *temp;
+    int ret;
+};
+
+enum PIPES {READ, WRITE};
+
 
 void child_process(char **parse_command, int argc, char* temp)
 {
@@ -81,7 +94,9 @@ void child_process(char **parse_command, int argc, char* temp)
         tail(argc, parse_command);
     else if (strcmp(parse_command[0], "head") == 0)
         head(argc, parse_command);
-	else if (strcmp(parse_command[0], "ln") == 0)
+    else if (strcmp(parse_command[0], "find") == 0)
+        find(argc, parse_command);
+    else if (strcmp(parse_command[0], "ln") == 0)
         ln(argc, parse_command);
     else
     {
@@ -92,18 +107,159 @@ void child_process(char **parse_command, int argc, char* temp)
     _exit(0);
 }
 
+int exec_parts(char *buf, char *path, char *temp);
 
-int main_()
+void redirect(int oldfd, int newfd)
+{
+    if (oldfd != newfd)
+    {
+        if (dup2(oldfd, newfd) != -1)
+            close(oldfd);
+        else
+            err(EXIT_FAILURE, "Error with dup2");
+    }
+}
+
+int run(char *buf, char *path, char *temp, int in, int out)
+{
+    redirect(in, STDIN_FILENO);
+    redirect(out, STDOUT_FILENO);
+
+    return exec_parts(buf, path, temp);
+}
+
+int work(void *arg)
+{
+    struct thread *t = (struct thread*) arg;
+    char *path = t->path;
+    char *temp = t->temp;
+    char *buf = t->parsed->buf;
+
+    struct parsed_part *pipes = parse_pipes(buf);
+    int quit = 0;
+    int num = pipes->parts;
+    if (num < 2)
+    {
+        int err = exec_parts(pipes->buf, path, temp);
+        if (err == -1)
+        {
+            t->ret = 1;
+            quit = 1;
+        }
+        free_parsed_part(pipes);
+        return quit;
+    }
+    struct parsed_part *tp = pipes;
+    int i = 0, in = STDIN_FILENO;
+    int save_out = dup(STDOUT_FILENO);
+    int save_in = dup(STDIN_FILENO);
+
+    for (; i < num - 1; i++)
+    {
+        int fd[2];
+        pid_t pid;
+
+        if (pipe(fd) == -1)
+            err(EXIT_FAILURE, "Error with pipe");
+        pid = fork();
+        if (pid == -1)
+            err(EXIT_FAILURE, "Error with fork");
+        if (pid == 0)
+        {
+            close(fd[0]);
+            run(tp->buf, path, temp, in, fd[1]);
+        }
+        else
+        {
+            close(fd[1]);
+            close(in);
+            in = fd[0];
+            tp = tp->next;
+        }
+    }
+    run(tp->buf, path, temp, in, save_out);
+    dup2(save_out, STDOUT_FILENO);
+    dup2(save_in, STDIN_FILENO);
+    free_parsed_part(pipes);
+    return quit;
+}
+
+int exec_parts(char *buf, char *path, char *temp)
+{
+    int output = 0;
+    int argc = 0;
+    int fd = -1;
+    int status;
+
+    struct parsed_part *parsed;
+    char **parse_command = parse_redirections(buf, &output, &parsed, &argc, &fd);
+    if (parse_command == NULL)
+        return 0;
+    if (parse_command[0] == NULL)
+    {
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        return 0;
+    }
+
+    if (strcmp(parse_command[0], "cd") == 0)
+    {
+        cd(argc, parse_command, &path);
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        return 0;
+    }
+
+    pid_t process = fork();
+
+    if (process == -1)
+    {
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        dup2(output, STDOUT_FILENO);
+        close(output);
+
+        return 0;
+    }
+    else if (process == 0)
+    {
+        child_process(parse_command, argc, temp);
+    }
+
+    else 
+    {
+        wait(&status);
+        free_parsed_part(parsed);
+        free_parse_command(parse_command);
+        if (fd > 0)
+            close(fd);
+        dup2(output, STDOUT_FILENO);
+        close(output);
+        if (WIFEXITED(status))
+        {
+            if (WEXITSTATUS(status) == EXIT_FAILURE)
+            {
+                return -1;
+            }
+        }
+    }
+    return 0;
+}
+
+
+int main()
 {
     char temp[BUFF_SIZE] = { 0 };
-    char **parse_command;
-
     char shell[1] = {'$'};
 
     ssize_t w;
     ssize_t r = 1;
 
-    int status;
+    //int rval = 0;
 
     char* path = getcwd(temp, BUFF_SIZE);
 
@@ -113,9 +269,7 @@ int main_()
 
     while(r != 0)
     {
-        //write(STDOUT_FILENO, "\033[0;41m",7);
         w = write(STDOUT_FILENO, shell, 1);
-        //write(STDOUT_FILENO, "\033[0m", 4);
         write(STDOUT_FILENO, " ", 1);
 
         if (w == -1)
@@ -131,96 +285,52 @@ int main_()
             continue;
         buf[i-1] = ' ';
 
-        char *sep_redirection = ">";
-        char *sep_args = " ";
-        int argc = 0;
+        struct parsed_part *parsed_instructions = parse_all_input(buf, ";");
+        struct parsed_part *tmp = parsed_instructions;
 
-        struct parsed_part *parsed = parse_all_input(buf, sep_redirection);
-        parse_command = parse_part_to_arg(parsed, sep_args, &argc);
-
-        struct parsed_part *temp_parse = parsed;
-        struct parsed_part *prev;
-        while(temp_parse->buf)
+        int exit = 0;
+        while (tmp->buf)
         {
-            prev = temp_parse;
-            temp_parse = temp_parse->next;
-        }
 
-        int fd = -1;
-        int flags;
-        int append = 0;
+            struct parsed_part *parsed_and = parse_and(tmp->buf);
+            struct parsed_part *temp_and = parsed_and;
 
-        int output = dup(STDOUT_FILENO);
-        if (parsed->next->buf)
-        {
-            if (prev->append == 1)
+            struct thread *threads = calloc(parsed_and->parts, sizeof(struct thread));
+            int t = 0;
+            while (temp_and->buf)
             {
-                flags = O_WRONLY | O_CREAT;
-                append = 1;
+                threads[t].parsed = temp_and;
+                threads[t].path = path;
+                threads[t].temp = temp;
+                //pthread_create(&(threads[t].thread), NULL, work, (void *) &threads[t]);
+                exit += work((void*) &threads[t]);
+                temp_and = temp_and->next;
+                t++;
             }
-            else
-                flags = O_WRONLY | O_TRUNC | O_CREAT;
 
-            char* redirect = prev->args->value;
-            fd = open(redirect, flags, 0644);
-            if (fd < 0)
-            {
-                write(STDOUT_FILENO, "An error appeared\n", 18);
-                free_parsed_part(parsed);
-                free_parse_command(parse_command);
-                continue;
-            }
-            else
-            {
-                if (append == 1)
-                    lseek(fd, 0, SEEK_END);
-                dup2(fd, STDOUT_FILENO);
-            }
+            /*
+               temp_and = parsed_and;
+               t = 0;
+               while(temp_and->buf)
+               {
+               pthread_join(threads[t].thread, (void **) &rval);
+               exit += threads[t].ret;
+               temp_and = temp_and->next;
+               t++;
+               }
+             */
+
+            free_parsed_part(parsed_and);
+            free(threads);
+
+            if (exit)
+                break;
+            tmp = tmp->next;
         }
+        free_parsed_part(parsed_instructions);
+        if (exit)
+            break;
 
-        if (strcmp(parse_command[0], "cd") == 0)
-        {
-            cd(argc, parse_command, &path);
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            continue;
-        }
-
-        pid_t process = fork();
-
-        if (process == -1)
-        {
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            dup2(output, STDOUT_FILENO);
-            close(output);
-
-            return -1;
-        }
-        else if (process == 0)
-        {
-            child_process(parse_command, argc, temp);
-        }
-
-        else 
-        {
-            wait(&status);
-            free_parsed_part(parsed);
-            free_parse_command(parse_command);
-            if (fd > 0)
-                close(fd);
-            dup2(output, STDOUT_FILENO);
-            close(output);
-            if (WIFEXITED(status))
-            {
-                if (WEXITSTATUS(status) == EXIT_FAILURE)
-                    return 1;
-            }
-        }
     }
 
     return 0;
@@ -236,7 +346,7 @@ void worker(int fd)
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDERR_FILENO);
 
-    main_();
+    main();
 
     dup2(save_out, STDOUT_FILENO);
     dup2(save_in, STDIN_FILENO);
@@ -249,7 +359,7 @@ void worker(int fd)
 
 }
 
-int main()
+int main_()
 {
     struct addrinfo hints;
     struct addrinfo *results;
