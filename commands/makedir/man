@@ -5,7 +5,12 @@ SYNOPSIS:
    makedir [NEW_DIRECTORY_NAME]
  
 DESCRIPTION:
-    Creates a new directory with the name/path of the parameter introduced 
+    Creates a new directory with one or more names/paths of the parameter introduced 
+
+   Optional arguments:
+
+   -v : Prints if the directory has been created or if it already exists
+   -m : Allows the user to add specific permissions.
     
 SEE ALSO:
    cd(1P), cp(1), pwd(1)
