@@ -40,7 +40,7 @@ int makedir(int argc, char **argv){
 
         for(int i=j;i<argc;i++){
             int fd= mkdir(argv[i], 0777);
-            if (leer==1 && fd ==-1) 
+            if (fd ==-1) 
             {    
                 write(STDOUT_FILENO, "Error: The directory already exists: ", 37);
                 write(STDOUT_FILENO, argv[i], strlen(argv[i]));
