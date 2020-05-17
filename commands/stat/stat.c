@@ -51,6 +51,7 @@ int stat_(int argc, char **argv)
         printf("\tTime of last access: %s\n", format_date(date, info.st_atim.tv_sec));
         printf("\tTime of last modification: %s\n", format_date(date, info.st_mtim.tv_sec));
         printf("\tTime of last status change: %s\n", format_date(date, info.st_ctim.tv_sec));
+        printf("\n");
 
         mode -= l;
         free(mode);
