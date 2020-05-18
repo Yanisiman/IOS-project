@@ -230,7 +230,7 @@ int work(void *arg)
 }
 
 
-int main()
+int main_()
 {
     char temp[BUFF_SIZE] = { 0 };
     char shell[1] = {'$'};
@@ -325,7 +325,7 @@ void worker(int fd)
     dup2(fd, STDIN_FILENO);
     dup2(fd, STDERR_FILENO);
 
-    main();
+    main_();
 
     dup2(save_out, STDOUT_FILENO);
     dup2(save_in, STDIN_FILENO);
@@ -338,7 +338,7 @@ void worker(int fd)
 
 }
 
-int main_()
+int main()
 {
     struct addrinfo hints;
     struct addrinfo *results;
