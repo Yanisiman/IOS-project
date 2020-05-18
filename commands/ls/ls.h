@@ -20,7 +20,7 @@ void listdir(char *pwd, struct other others, struct flags flag);
 
 void ls(int argc, char** argv);
 
-void simple_ls();
+void simple_ls(char *file);
 
 void display_directories(char *pwd, struct other others, struct flags flag, int d, struct dirent *dirs);
 

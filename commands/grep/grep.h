@@ -1,3 +1,5 @@
+void read_from_int(char *pattern);
+
 char *read_to_string(int fd);
 
 char **string_to_lines(char *file, int *count);

@@ -17,9 +17,10 @@ void listdir(char *pwd, struct other others, struct flags flag)
     ssize_t k_pwd = strlen(pwd);
 
     if (!(dir = opendir(pwd))){
-        write(STDERR_FILENO, "Error: can't open the file or directory: ", 41);
-        write(STDERR_FILENO, pwd, k_pwd);
-        write(STDERR_FILENO, "\n", 1);
+        //write(STDERR_FILENO, "Error: can't open the file or directory: ", 41);
+        //write(STDERR_FILENO, pwd, k_pwd);
+        //write(STDERR_FILENO, "\n", 1);
+        simple_ls(pwd);
         return;
     }
 
@@ -117,14 +118,17 @@ void ls(int argc, char** argv)
     }
 }
 
-void simple_ls()
+void simple_ls(char *file)
 {
-    char tmp[256];
-    char *pwd = getcwd(tmp, sizeof(tmp));
-    struct flags f = {0, 0, 0};
-    struct other others = {2, 0};
-    listdir(pwd, others, f);
+    char *perms = get_stats(".", file);
 
+    write(STDOUT_FILENO, "\033[0;34m", 7);
+    write(STDOUT_FILENO, perms, 10);
+    printf(" %s\n", file);
+    write(STDOUT_FILENO, "\033[0m", 4);
+    free(perms);
+
+    return;
 }
 
 void display_directories(char *pwd, struct other others, struct flags flag, int d, struct dirent *dirs)

@@ -44,9 +44,6 @@ struct thread
     int ret;
 };
 
-enum PIPES {READ, WRITE};
-
-
 void child_process(char **parse_command, int argc, char* temp)
 {
     char arr[BUFF_SIZE] = { 0 };
@@ -105,83 +102,6 @@ void child_process(char **parse_command, int argc, char* temp)
     }
 
     _exit(0);
-}
-
-int exec_parts(char *buf, char *path, char *temp);
-
-void redirect(int oldfd, int newfd)
-{
-    if (oldfd != newfd)
-    {
-        if (dup2(oldfd, newfd) != -1)
-            close(oldfd);
-        else
-            err(EXIT_FAILURE, "Error with dup2");
-    }
-}
-
-int run(char *buf, char *path, char *temp, int in, int out)
-{
-    redirect(in, STDIN_FILENO);
-    redirect(out, STDOUT_FILENO);
-
-    return exec_parts(buf, path, temp);
-}
-
-int work(void *arg)
-{
-    struct thread *t = (struct thread*) arg;
-    char *path = t->path;
-    char *temp = t->temp;
-    char *buf = t->parsed->buf;
-
-    struct parsed_part *pipes = parse_pipes(buf);
-    int quit = 0;
-    int num = pipes->parts;
-    if (num < 2)
-    {
-        int err = exec_parts(pipes->buf, path, temp);
-        if (err == -1)
-        {
-            t->ret = 1;
-            quit = 1;
-        }
-        free_parsed_part(pipes);
-        return quit;
-    }
-    struct parsed_part *tp = pipes;
-    int i = 0, in = STDIN_FILENO;
-    int save_out = dup(STDOUT_FILENO);
-    int save_in = dup(STDIN_FILENO);
-
-    for (; i < num - 1; i++)
-    {
-        int fd[2];
-        pid_t pid;
-
-        if (pipe(fd) == -1)
-            err(EXIT_FAILURE, "Error with pipe");
-        pid = fork();
-        if (pid == -1)
-            err(EXIT_FAILURE, "Error with fork");
-        if (pid == 0)
-        {
-            close(fd[0]);
-            run(tp->buf, path, temp, in, fd[1]);
-        }
-        else
-        {
-            close(fd[1]);
-            close(in);
-            in = fd[0];
-            tp = tp->next;
-        }
-    }
-    run(tp->buf, path, temp, in, save_out);
-    dup2(save_out, STDOUT_FILENO);
-    dup2(save_in, STDIN_FILENO);
-    free_parsed_part(pipes);
-    return quit;
 }
 
 int exec_parts(char *buf, char *path, char *temp)
@@ -248,6 +168,65 @@ int exec_parts(char *buf, char *path, char *temp)
         }
     }
     return 0;
+}
+
+int work(void *arg)
+{
+    struct thread *t = (struct thread*) arg;
+    char *path = t->path;
+    char *temp = t->temp;
+    char *buf = t->parsed->buf;
+
+    struct parsed_part *pipes = parse_pipes(buf);
+    int quit = 0;
+    int num = pipes->parts;
+    if (num < 2)
+    {
+        int err = exec_parts(pipes->buf, path, temp);
+        if (err == -1)
+        {
+            t->ret = 1;
+            quit = 1;
+        }
+        free_parsed_part(pipes);
+        return quit;
+    }
+    struct parsed_part *tp = pipes;
+    int fd_in = STDIN_FILENO;
+    int save_out = dup(STDOUT_FILENO);
+    int save_in = dup(STDIN_FILENO);
+
+    int fd[2];
+    pid_t pid;
+
+    while (tp->buf != NULL)
+    {
+        if (pipe(fd) == -1)
+            err(EXIT_FAILURE, "Error with pipe");
+        pid = fork();
+        if (pid == -1)
+            err(EXIT_FAILURE, "Error with fork");
+        if (pid == 0)
+        {
+            dup2(fd_in, STDIN_FILENO);
+            if (tp->next->buf != NULL)
+                dup2(fd[1], STDOUT_FILENO);
+            close(fd[0]);
+            int err = exec_parts(tp->buf, path, temp);
+            exit(err);
+        }
+        else
+        {
+            wait(NULL);
+            close(fd[1]);
+            fd_in = fd[0];
+            tp = tp->next;
+        }
+    }
+    dup2(save_out, STDOUT_FILENO);
+    dup2(save_in, STDIN_FILENO);
+    free_parsed_part(pipes);
+    return quit;
 }
 
 
