@@ -53,7 +53,7 @@ int cd(int argc, char *argv[], char** last_cd)
     if (a < 0)
     {
         ssize_t k = strlen(argv[1]);
-        write(STDERR_FILENO, "There is no room called ", 24);
+        write(STDERR_FILENO, "There is no room that you can enter called ", 43);
         write(STDERR_FILENO, argv[1], k);
         write(STDERR_FILENO, ".\n", 2);
         return EXIT_FAILURE;
