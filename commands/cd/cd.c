@@ -27,9 +27,8 @@ int tellDescription()
     return 0;
 }
 
-int cd(int argc, char *argv[], char** last_cd)
+int cd(int argc, char *argv[], char** last_cd, char* home)
 {
-   
     if (argc > 2)
     {
         write(STDERR_FILENO, "Too many arguments are given.\n", 30);
@@ -41,7 +40,8 @@ int cd(int argc, char *argv[], char** last_cd)
     int a;
 
     if (argc < 2)
-        a = chdir(getenv("HOME"));
+        //a = chdir(getenv("HOME"));
+        a = chdir(home);
     else
     {
         if (argv[1][0] == '-')

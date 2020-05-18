@@ -41,6 +41,7 @@ struct thread
     struct parsed_part *parsed;
     char *path;
     char *temp;
+    char *home;
     int ret;
 };
 
@@ -104,7 +105,7 @@ void child_process(char **parse_command, int argc, char* temp)
     _exit(0);
 }
 
-int exec_parts(char *buf, char *path, char *temp)
+int exec_parts(char *buf, char *path, char *temp, char *home)
 {
     int output = 0;
     int argc = 0;
@@ -124,7 +125,7 @@ int exec_parts(char *buf, char *path, char *temp)
 
     if (strcmp(parse_command[0], "cd") == 0)
     {
-        cd(argc, parse_command, &path);
+        cd(argc, parse_command, &path, home);
         free_parsed_part(parsed);
         free_parse_command(parse_command);
         if (fd > 0)
@@ -176,13 +177,14 @@ int work(void *arg)
     char *path = t->path;
     char *temp = t->temp;
     char *buf = t->parsed->buf;
+    char *home = t->home;
 
     struct parsed_part *pipes = parse_pipes(buf);
     int quit = 0;
     int num = pipes->parts;
     if (num < 2)
     {
-        int err = exec_parts(pipes->buf, path, temp);
+        int err = exec_parts(pipes->buf, path, temp, home);
         if (err == -1)
         {
             t->ret = 1;
@@ -212,7 +214,7 @@ int work(void *arg)
             if (tp->next->buf != NULL)
                 dup2(fd[1], STDOUT_FILENO);
             close(fd[0]);
-            int err = exec_parts(tp->buf, path, temp);
+            int err = exec_parts(tp->buf, path, temp, home);
             exit(err);
         }
         else
@@ -233,6 +235,7 @@ int work(void *arg)
 int main_()
 {
     char temp[BUFF_SIZE] = { 0 };
+    char home[BUFF_SIZE] = { 0 };
     char shell[1] = {'$'};
 
     ssize_t w;
@@ -243,8 +246,10 @@ int main_()
     char* path = getcwd(temp, BUFF_SIZE);
 
     char *first_cd[2] = {"cd", "./Home"};
-    if (cd(2, first_cd, &path) == -1)
+    if (cd(2, first_cd, &path, home) == -1)
         errx(EXIT_FAILURE, "Error trying to cd to Home folder");
+
+    getcwd(home, BUFF_SIZE);
 
     while(r != 0)
     {
@@ -281,6 +286,7 @@ int main_()
                 threads[t].parsed = temp_and;
                 threads[t].path = path;
                 threads[t].temp = temp;
+                threads[t].home = home;
                 //pthread_create(&(threads[t].thread), NULL, work, (void *) &threads[t]);
                 exit += work((void*) &threads[t]);
                 temp_and = temp_and->next;
